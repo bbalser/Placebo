@@ -22,7 +22,7 @@ defmodule Mockit.ReturnTo do
 
   defp mock(module, opts) do
     if not is_mocked?(module) do
-      :meck.new(module, opts)
+      :meck.new(module, [:no_link|opts])
     end
   end
 
