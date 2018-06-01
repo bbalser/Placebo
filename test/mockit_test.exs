@@ -3,77 +3,77 @@ defmodule MockitTest do
   use Mockit
 
   test "Can stub out static value" do
-    allow(Stuff.get(1)).to_return "Hello"
+    allow(Mockit.Dummy.get(1)).to_return "Hello"
 
-    assert Stuff.get(1) == "Hello"
+    assert Mockit.Dummy.get(1) == "Hello"
   end
 
   test "Can stub out using a anonymous function" do
-    allow(Stuff.get).to_return fn 1 -> "Hello"
+    allow(Mockit.Dummy.get).to_return fn 1 -> "Hello"
                                   2 -> "Bye" end
 
-    assert Stuff.get(1) == "Hello"
-    assert Stuff.get(2) == "Bye"
+    assert Mockit.Dummy.get(1) == "Hello"
+    assert Mockit.Dummy.get(2) == "Bye"
   end
 
   test "Can match any arguments" do
-    allow(Stuff.get(:_)).to_return "Jerks"
+    allow(Mockit.Dummy.get(:_)).to_return "Jerks"
 
-    assert Stuff.get("a") == "Jerks"
-    assert Stuff.get("b") == "Jerks"
+    assert Mockit.Dummy.get("a") == "Jerks"
+    assert Mockit.Dummy.get("b") == "Jerks"
   end
 
   test "Can create sequence of stubs" do
-    allow(Stuff.get(:_)).to_return seq([1,2,3])
+    allow(Mockit.Dummy.get(:_)).to_return seq([1,2,3])
 
-    assert Stuff.get("a") == 1
-    assert Stuff.get("b") == 2
-    assert Stuff.get("c") == 3
-    assert Stuff.get("d") == 3
+    assert Mockit.Dummy.get("a") == 1
+    assert Mockit.Dummy.get("b") == 2
+    assert Mockit.Dummy.get("c") == 3
+    assert Mockit.Dummy.get("d") == 3
   end
 
   test "Can create loop of stubs" do
-    allow(Stuff.get(:_)).to_return loop([1,2,3])
+    allow(Mockit.Dummy.get(:_)).to_return loop([1,2,3])
 
-    assert Stuff.get("a") == 1
-    assert Stuff.get("b") == 2
-    assert Stuff.get("c") == 3
-    assert Stuff.get("d") == 1
+    assert Mockit.Dummy.get("a") == 1
+    assert Mockit.Dummy.get("b") == 2
+    assert Mockit.Dummy.get("c") == 3
+    assert Mockit.Dummy.get("d") == 1
   end
 
   test "assert_called validate call to mock was made" do
-    allow(Stuff.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to_return "Testing"
 
-    Stuff.get("a")
-    Stuff.get("a")
+    Mockit.Dummy.get("a")
+    Mockit.Dummy.get("a")
 
-    assert_called Stuff.get("a")
+    assert_called Mockit.Dummy.get("a")
   end
 
   test "validator once" do
-    allow(Stuff.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to_return "Testing"
 
-    Stuff.get("a")
-    Stuff.get("a")
+    Mockit.Dummy.get("a")
+    Mockit.Dummy.get("a")
 
-    refute_called Stuff.get("a"), once()
+    refute_called Mockit.Dummy.get("a"), once()
   end
 
   test "validator times" do
-    allow(Stuff.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to_return "Testing"
 
-    Stuff.get("a")
-    Stuff.get("a")
+    Mockit.Dummy.get("a")
+    Mockit.Dummy.get("a")
 
-    assert_called Stuff.get("a"), times(2)
+    assert_called Mockit.Dummy.get("a"), times(2)
   end
 
   test "refute negative validator times" do
-    allow(Stuff.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to_return "Testing"
 
-    Stuff.get("a")
+    Mockit.Dummy.get("a")
 
-    refute_called Stuff.get("a"), times(2)
+    refute_called Mockit.Dummy.get("a"), times(2)
   end
 
 end

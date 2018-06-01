@@ -1,4 +1,4 @@
-defmodule Stuff do
+defmodule Mockit.Dummy do
 
   def something(x), do: IO.inspect(x)
 
