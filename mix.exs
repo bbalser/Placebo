@@ -15,7 +15,6 @@ defmodule Mockit.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Mockit.Application, []}
     ]
   end
 

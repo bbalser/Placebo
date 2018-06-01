@@ -21,6 +21,18 @@ defmodule Mockit do
     end
   end
 
+  defmacro capture({ {:., _, [ module , f ]} , _, args }, arg_num) do
+    quote do
+      :meck.capture(:first, unquote(module), unquote(f), unquote(args), unquote(arg_num))
+    end
+  end
+
+  defmacro capture(history_position, { {:., _, [ module , f ]} , _, args }, arg_num) do
+    quote do
+      :meck.capture(unquote(history_position), unquote(module), unquote(f), unquote(args), unquote(arg_num))
+    end
+  end
+
   defmacro allow({ {:., _, [ module , f ]} , _, args }, opts \\ []) do
     quote do
       {Mockit.ReturnTo, unquote(module), unquote(f), unquote(args), unquote(opts)}

@@ -83,4 +83,22 @@ defmodule MockitTest do
     assert Mockit.Dummy.get("a","b") == "&get/2"
   end
 
+  test "capture" do
+    allow(Mockit.Dummy.get(:_, :_)).to_return "Jerks"
+
+    Mockit.Dummy.get("pizza", "hound-dog")
+
+    assert "pizza" == capture(Mockit.Dummy.get(:_, :_), 1)
+  end
+
+  test "capture nth call in history" do
+    allow(Mockit.Dummy.get(:_,:_)).to_return "Cowbody"
+
+    Mockit.Dummy.get("one", "two")
+    Mockit.Dummy.get("three", "four")
+
+    assert "two" == capture(Mockit.Dummy.get(:_, :_), 2)
+    assert "four" == capture(2, Mockit.Dummy.get(:_, :_), 2)
+  end
+
 end
