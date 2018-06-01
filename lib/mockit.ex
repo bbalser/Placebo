@@ -9,9 +9,7 @@ defmodule Mockit do
       setup_all do
         Agent.start(fn -> MapSet.new end, name: Mockit.Agent)
 
-        on_exit fn ->
-          Agent.stop(Mockit.Agent)
-        end
+        on_exit fn -> Agent.stop(Mockit.Agent) end
         :ok
       end
 
@@ -23,9 +21,9 @@ defmodule Mockit do
     end
   end
 
-  defmacro allow({ {:., _, [ module , f ]} , _, args }) do
+  defmacro allow({ {:., _, [ module , f ]} , _, args }, opts \\ []) do
     quote do
-      {Mockit.ReturnTo, unquote(module), unquote(f), unquote(args)}
+      {Mockit.ReturnTo, unquote(module), unquote(f), unquote(args), unquote(opts)}
     end
   end
 

@@ -10,7 +10,7 @@ defmodule MockitTest do
 
   test "Can stub out using a anonymous function" do
     allow(Mockit.Dummy.get).to_return fn 1 -> "Hello"
-                                  2 -> "Bye" end
+                                         2 -> "Bye" end
 
     assert Mockit.Dummy.get(1) == "Hello"
     assert Mockit.Dummy.get(2) == "Bye"
@@ -74,6 +74,13 @@ defmodule MockitTest do
     Mockit.Dummy.get("a")
 
     refute_called Mockit.Dummy.get("a"), times(2)
+  end
+
+  test "passthrough option" do
+    allow(Mockit.Dummy.get("b"), [:passthrough]).to_return "Hello"
+
+    assert Mockit.Dummy.get("b") == "Hello"
+    assert Mockit.Dummy.get("a","b") == "&get/2"
   end
 
 end
