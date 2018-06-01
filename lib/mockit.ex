@@ -42,7 +42,6 @@ defmodule Mockit do
   defmacro assert_called({ {:., _, [ module , f ]} , _, args }, validator \\ :any) do
     quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
       result = case validator do
-        :once -> 1 == :meck.num_calls(module, f, args)
         {:times, n} -> n == :meck.num_calls(module, f, args)
         _ -> :meck.called(module, f, args)
       end
@@ -53,13 +52,11 @@ defmodule Mockit do
   defmacro refute_called({ {:., _, [ module , f ]} , _, args }, validator \\ :any) do
     quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
       result = case validator do
-        :once -> 1 == :meck.num_calls(module, f, args)
         {:times, n} -> n == :meck.num_calls(module, f, args)
         _ -> :meck.called(module, f, args)
       end
       refute result, Mockit.Helpers.format_history(module)
     end
   end
-
 
 end
