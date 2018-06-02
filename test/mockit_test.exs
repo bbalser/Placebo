@@ -3,30 +3,44 @@ defmodule MockitTest do
   use Mockit
 
   test "Can stub out static value" do
-    allow(Mockit.Dummy.get(1)).to_return "Hello"
+    allow(Mockit.Dummy.get(1)).to return "Hello"
 
     assert Mockit.Dummy.get(1) == "Hello"
   end
 
-  test "Can stub out using a anonymous function" do
-    allow(Mockit.Dummy.get()).to_return fn
-      1 -> "Hello"
-      2 -> "Bye"
-    end
+  test "expectations are merged" do
+    allow(Mockit.Dummy.get("a")).to return "A"
+    allow(Mockit.Dummy.get(:_)).to return "B"
 
-    assert Mockit.Dummy.get(1) == "Hello"
-    assert Mockit.Dummy.get(2) == "Bye"
+    assert Mockit.Dummy.get("a") == "A"
+    assert Mockit.Dummy.get("Zebra") == "B"
   end
 
   test "Can match any arguments" do
-    allow(Mockit.Dummy.get(:_)).to_return "Jerks"
+    allow(Mockit.Dummy.get any() ).to return "Jerks"
 
     assert Mockit.Dummy.get("a") == "Jerks"
     assert Mockit.Dummy.get("b") == "Jerks"
   end
 
+  test "Can execute function but match on given args" do
+    allow(Mockit.Dummy.get("a")).to exec (fn _ -> "One" end)
+    allow(Mockit.Dummy.get any() ).to return "Two"
+
+    assert Mockit.Dummy.get("a") == "One"
+    assert Mockit.Dummy.get("b") == "Two"
+  end
+
+  test "When no matcher given to mock with exec call, function args are matchers" do
+    allow(Mockit.Dummy.get).to exec fn "a" -> "One"
+                                     "b" -> "Two" end
+
+    assert Mockit.Dummy.get("a") == "One"
+    assert Mockit.Dummy.get("b") == "Two"
+  end
+
   test "Can create sequence of stubs" do
-    allow(Mockit.Dummy.get(:_)).to_return seq([1, 2, 3])
+    allow(Mockit.Dummy.get(:_)).to seq([1, 2, 3])
 
     assert Mockit.Dummy.get("a") == 1
     assert Mockit.Dummy.get("b") == 2
@@ -35,7 +49,7 @@ defmodule MockitTest do
   end
 
   test "Can create loop of stubs" do
-    allow(Mockit.Dummy.get(:_)).to_return loop([1, 2, 3])
+    allow(Mockit.Dummy.get(:_)).to loop([1, 2, 3])
 
     assert Mockit.Dummy.get("a") == 1
     assert Mockit.Dummy.get("b") == 2
@@ -44,7 +58,7 @@ defmodule MockitTest do
   end
 
   test "assert_called validate call to mock was made" do
-    allow(Mockit.Dummy.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to return "Testing"
 
     Mockit.Dummy.get("a")
     Mockit.Dummy.get("a")
@@ -53,7 +67,7 @@ defmodule MockitTest do
   end
 
   test "validator once" do
-    allow(Mockit.Dummy.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to return "Testing"
 
     Mockit.Dummy.get("a")
     Mockit.Dummy.get("a")
@@ -62,7 +76,7 @@ defmodule MockitTest do
   end
 
   test "validator times" do
-    allow(Mockit.Dummy.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to return "Testing"
 
     Mockit.Dummy.get("a")
     Mockit.Dummy.get("a")
@@ -71,7 +85,7 @@ defmodule MockitTest do
   end
 
   test "refute negative validator times" do
-    allow(Mockit.Dummy.get(:_)).to_return "Testing"
+    allow(Mockit.Dummy.get(:_)).to return "Testing"
 
     Mockit.Dummy.get("a")
 
@@ -79,14 +93,14 @@ defmodule MockitTest do
   end
 
   test "passthrough option" do
-    allow(Mockit.Dummy.get("b"), [:passthrough]).to_return "Hello"
+    allow(Mockit.Dummy.get("b"), [:passthrough]).to return "Hello"
 
     assert Mockit.Dummy.get("b") == "Hello"
     assert Mockit.Dummy.get("a", "b") == "&get/2"
   end
 
   test "capture" do
-    allow(Mockit.Dummy.get(:_, :_)).to_return "Jerks"
+    allow(Mockit.Dummy.get(:_, :_)).to return "Jerks"
 
     Mockit.Dummy.get("pizza", "hound-dog")
 
@@ -94,7 +108,7 @@ defmodule MockitTest do
   end
 
   test "capture nth call in history" do
-    allow(Mockit.Dummy.get(:_, :_)).to_return "Cowbody"
+    allow(Mockit.Dummy.get(:_, :_)).to return "Cowbody"
 
     Mockit.Dummy.get("one", "two")
     Mockit.Dummy.get("three", "four")
@@ -104,7 +118,7 @@ defmodule MockitTest do
   end
 
   test "expect does automatic verification of mock call" do
-    expect(Mockit.Dummy.get("a")).to_return "Browns"
+    expect(Mockit.Dummy.get("a")).to return "Browns"
 
     assert Mockit.Dummy.get("a") == "Browns"
   end

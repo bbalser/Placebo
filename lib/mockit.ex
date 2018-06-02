@@ -2,6 +2,7 @@ defmodule Mockit do
   defmacro __using__(_args) do
     quote do
       import Mockit
+      import Mockit.Matchers
       import Mockit.RetSpecs
       import Mockit.Validators
 
@@ -62,7 +63,7 @@ defmodule Mockit do
   defp record_expectation(module, function, args, opts, action) do
     quote bind_quoted: [module: module, function: function, args: args, opts: opts, action: action] do
       mock = %Mockit.Mock{module: module, function: function, args: args, opts: opts, action: action}
-      {Mockit.ReturnTo, mock}
+      {Mockit.To, mock}
     end
   end
 
