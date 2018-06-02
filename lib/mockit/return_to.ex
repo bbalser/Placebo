@@ -1,35 +1,34 @@
 defmodule Mockit.ReturnTo do
+  alias Mockit.Mock
 
-  def to_return({:loop, list}, {_, module, f, args, opts}) do
-    mock(module, opts)
-    :meck.expect(module, f, args, :meck.loop(list))
+  def to_return({:loop, list}, {_, %Mock{} = mock}) do
+    create_mock(mock)
+    :meck.expect(mock.module, mock.function, mock.args, :meck.loop(list))
   end
 
-  def to_return({:sequence, list}, {_, module, f, args, opts}) do
-    mock(module, opts)
-    :meck.expect(module, f, args, :meck.seq(list))
+  def to_return({:sequence, list}, {_, %Mock{} = mock}) do
+    create_mock(mock)
+    :meck.expect(mock.module, mock.function, mock.args, :meck.seq(list))
   end
 
-  def to_return(function, {_, module, f, _args, opts}) when is_function(function) do
-    mock(module, opts)
-    :meck.expect(module, f, function)
+  def to_return(function, {_, %Mock{} = mock}) when is_function(function) do
+    create_mock(mock)
+    :meck.expect(mock.module, mock.function, function)
   end
 
-  def to_return(term, {_, module, f, args, opts}) do
-    mock(module, opts)
-    :meck.expect(module, f, args, :meck.val(term))
+  def to_return(term, {_, %Mock{} = mock}) do
+    create_mock(mock)
+    :meck.expect(mock.module, mock.function, mock.args, :meck.val(term))
   end
 
-  defp mock(module, opts) do
-    if not is_mocked?(module) do
-      :meck.new(module, [:no_link|opts])
+  defp create_mock(%Mock{} = mock) do
+    if not is_mocked?(mock.module) do
+      Agent.update(Mockit.Agent, fn s -> Map.put(s, mock.module, mock) end)
+      :meck.new(mock.module, [:no_link | mock.opts])
     end
   end
 
   defp is_mocked?(module) do
-    Agent.get_and_update(Mockit.Agent, fn state ->
-      {MapSet.member?(state, module), MapSet.put(state, module)}
-    end)
+    Agent.get(Mockit.Agent, fn s -> Map.has_key?(s, module) end)
   end
-
 end
