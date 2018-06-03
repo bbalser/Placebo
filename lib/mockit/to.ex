@@ -2,12 +2,12 @@ defmodule Mockit.To do
   alias Mockit.Mock
 
   def to({:return, value}, {_, %Mock{} = mock}) do
-    create_mock(mock)
+    update_mock(mock)
     :meck.expect(mock.module, mock.function, mock.args, :meck.val(value))
   end
 
   def to({:exec, function}, {_, %Mock{} = mock}) do
-    create_mock(mock)
+    update_mock(mock)
 
     case Enum.count(mock.args) do
       0 -> :meck.expect(mock.module, mock.function, function)
@@ -17,30 +17,26 @@ defmodule Mockit.To do
   end
 
   def to({:sequence, list}, {_, %Mock{} = mock}) do
-    create_mock(mock)
+    update_mock(mock)
     :meck.expect(mock.module, mock.function, mock.args, :meck.seq(list))
   end
 
   def to({:loop, list}, {_, %Mock{} = mock}) do
-    create_mock(mock)
+    update_mock(mock)
     :meck.expect(mock.module, mock.function, mock.args, :meck.loop(list))
   end
 
-
-  # def to(function, {_, %Mock{} = mock}) when is_function(function) do
-  #   create_mock(mock)
-  #   :meck.expect(mock.module, mock.function, function)
-  # end
-
-  # def to(term, {_, %Mock{} = mock}) do
-  #   create_mock(mock)
-  #   :meck.expect(mock.module, mock.function, mock.args, :meck.val(term))
-  # end
-
-  defp create_mock(%Mock{} = mock) do
+  defp update_mock(%Mock{} = mock) do
     if not is_mocked?(mock.module) do
-      Agent.update(Mockit.Agent, fn s -> Map.put(s, mock.module, mock) end)
+      Agent.update(Mockit.Agent, fn s -> Map.put(s, mock.module, []) end)
       :meck.new(mock.module, set_opts(mock.opts))
+    end
+
+    if mock.action == :expect do
+      expectation = %Mockit.Excpetation{module: mock.module, function: mock.function, args: mock.args}
+      Agent.update(Mockit.Agent, fn s ->
+        Map.put(s, mock.module, [expectation | Map.get(s, mock.module)])
+      end)
     end
   end
 

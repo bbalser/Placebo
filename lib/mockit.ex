@@ -16,15 +16,18 @@ defmodule Mockit do
       setup do
         on_exit(fn ->
 
-          mocks = Agent.get_and_update(Mockit.Agent, fn s -> {Map.values(s), Map.new()} end)
+          mocks = Agent.get_and_update(Mockit.Agent, fn s -> {s, Map.new()} end)
 
           try do
-            Enum.filter(mocks, fn mock -> mock.action == :expect end)
-            |> Enum.each(fn mock ->
-              assert :meck.called(mock.module, mock.function, mock.args), Mockit.Helpers.format_history(mock.module)
+            Map.values(mocks)
+            |> List.flatten()
+            |> Enum.each(fn expectation ->
+              assert :meck.called(expectation.module, expectation.function, expectation.args),
+                      Mockit.Helpers.failure_message(expectation.module, expectation.function, expectation.args)
             end)
           after
-            Enum.each(mocks, fn mock -> :meck.unload(mock.module) end)
+            Map.keys(mocks)
+            |> Enum.each(fn mock -> :meck.unload(mock) end)
           end
 
         end)
@@ -74,7 +77,7 @@ defmodule Mockit do
           _ -> :meck.called(module, f, args)
         end
 
-      assert(result, Mockit.Helpers.format_history(module))
+      assert(result, Mockit.Helpers.failure_message(module,f,args))
     end
   end
 
@@ -86,7 +89,7 @@ defmodule Mockit do
           _ -> :meck.called(module, f, args)
         end
 
-      refute(result, Mockit.Helpers.format_history(module))
+      refute(result, Mockit.Helpers.failure_message(module,f,args))
     end
   end
 
