@@ -7,7 +7,8 @@ defmodule Mockit.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      name: "Mockit"
     ]
   end
 
@@ -22,7 +23,8 @@ defmodule Mockit.MixProject do
   defp deps do
     [
       {:meck, "~> 0.8.9"},
-      {:mix_test_watch, "~> 0.6.0", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 0.6.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
     ]
   end
 end
