@@ -1,4 +1,4 @@
-defmodule Mockit.RetSpecs do
+defmodule Placebo.RetSpecs do
   def seq(list) when is_list(list) do
     {:sequence, list}
   end

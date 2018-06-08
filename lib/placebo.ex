@@ -1,11 +1,10 @@
-defmodule Mockit do
-# defmodule Placebo do
+defmodule Placebo do
 
   @moduledoc """
-  Mockit is a mocking library based on [meck](http://eproxus.github.io/meck/).
+  Placebo is a mocking library based on [meck](http://eproxus.github.io/meck/).
   It is inspired by [RSpec](http://rspec.info/) and [Mock](https://github.com/jjh42/mock).
   All the functionality covered below is provided by meck.
-  Mockit is just a pretty wrapper around the features of meck.
+  Placebo is just a pretty wrapper around the features of meck.
 
   ## Stubbing
 
@@ -39,13 +38,13 @@ defmodule Mockit do
   # Argument Matching
 
   Any term passed in as an argument will be matched exactly.
-  `Mockit.Matchers` provides several argument matchers to be used for more dynamic scenarios.
+  `Placebo.Matchers` provides several argument matchers to be used for more dynamic scenarios.
   If you need something custom you can pass a function to the is/1 matcher.
   ```
     allow(Some.Module.hello(is(fn arg -> rem(arg,2) == 0 end))).to return "Even"
   ```
 
-  all mocks created by Mockit are automaticaly created with :merge_expects option.
+  all mocks created by Placebo are automaticaly created with :merge_expects option.
   So multiple allow statements can be made for the same function and will match in the order defined.
   ```
     allow(Some.Module.hello(is(fn arg -> rem(arg,2) == 0 end))).to return "Even"
@@ -74,25 +73,25 @@ defmodule Mockit do
 
   defmacro __using__(_args) do
     quote do
-      import Mockit
-      import Mockit.Matchers
-      import Mockit.RetSpecs
-      import Mockit.Validators
+      import Placebo
+      import Placebo.Matchers
+      import Placebo.RetSpecs
+      import Placebo.Validators
 
       setup do
         on_exit(fn ->
 
-          mocks = Mockit.Server.get()
+          mocks = Placebo.Server.get()
 
           try do
             Map.values(mocks)
             |> List.flatten()
             |> Enum.each(fn expectation ->
               assert :meck.called(expectation.module, expectation.function, expectation.args),
-                      Mockit.Helpers.failure_message(expectation.module, expectation.function, expectation.args)
+                      Placebo.Helpers.failure_message(expectation.module, expectation.function, expectation.args)
             end)
           after
-            Mockit.Server.clear()
+            Placebo.Server.clear()
             Map.keys(mocks)
             |> Enum.each(fn mock -> :meck.unload(mock) end)
           end
@@ -132,8 +131,8 @@ defmodule Mockit do
 
   defp record_expectation(module, function, args, opts, action) do
     quote bind_quoted: [module: module, function: function, args: args, opts: opts, action: action] do
-      mock = %Mockit.Mock{module: module, function: function, args: args, opts: opts, action: action}
-      {Mockit.To, mock}
+      mock = %Placebo.Mock{module: module, function: function, args: args, opts: opts, action: action}
+      {Placebo.To, mock}
     end
   end
 
@@ -144,7 +143,7 @@ defmodule Mockit do
           _ -> :meck.called(module, f, args)
         end
 
-      assert(result, Mockit.Helpers.failure_message(module,f,args))
+      assert(result, Placebo.Helpers.failure_message(module,f,args))
     end
   end
 
@@ -156,7 +155,7 @@ defmodule Mockit do
           _ -> :meck.called(module, f, args)
         end
 
-      refute(result, Mockit.Helpers.failure_message(module,f,args))
+      refute(result, Placebo.Helpers.failure_message(module,f,args))
     end
   end
 

@@ -1,4 +1,4 @@
-defmodule Mockit.Helpers do
+defmodule Placebo.Helpers do
 
   def failure_message(module, function, args) do
     "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{format_history(module)}"

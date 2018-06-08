@@ -1,4 +1,4 @@
-defmodule Mockit.Dummy do
+defmodule Placebo.Dummy do
   defmodule Exception do
     defexception [:message]
   end

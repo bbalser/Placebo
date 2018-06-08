@@ -1,5 +1,5 @@
-defmodule Mockit.To do
-  alias Mockit.Mock
+defmodule Placebo.To do
+  alias Placebo.Mock
 
   def to({:return, value}, {_, %Mock{} = mock}) do
     update_mock(mock)
@@ -27,10 +27,10 @@ defmodule Mockit.To do
   end
 
   defp update_mock(%Mock{} = mock) do
-    if not Mockit.Server.is_mock?(mock.module) do
+    if not Placebo.Server.is_mock?(mock.module) do
       :meck.new(mock.module, set_opts(mock.opts))
     end
-    Mockit.Server.add_expectation(mock)
+    Placebo.Server.add_expectation(mock)
   end
 
   defp set_opts(opts) do

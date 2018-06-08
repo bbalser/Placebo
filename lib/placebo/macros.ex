@@ -1,4 +1,4 @@
-defmodule Mockit.Macros do
+defmodule Placebo.Macros do
 
   defmacro matcher(name, do: block) do
     if references_input_variable?(block) do

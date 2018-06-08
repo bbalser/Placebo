@@ -1,4 +1,4 @@
-defmodule Mockit.Server do
+defmodule Placebo.Server do
   use GenServer
 
   def start_link(_args) do
@@ -17,7 +17,7 @@ defmodule Mockit.Server do
 
   def is_mock?(module), do: GenServer.call(__MODULE__, {:is_new, module})
 
-  def add_expectation(%Mockit.Mock{} = mock) do
+  def add_expectation(%Placebo.Mock{} = mock) do
     GenServer.cast(__MODULE__, {:add, mock})
   end
 
@@ -37,7 +37,7 @@ defmodule Mockit.Server do
     |> noreply()
   end
 
-  def handle_cast({:add, %Mockit.Mock{} = mock}, state) do
+  def handle_cast({:add, %Placebo.Mock{} = mock}, state) do
     Map.put(state, mock.module, determine_value(state, mock))
     |> noreply()
   end
@@ -45,7 +45,7 @@ defmodule Mockit.Server do
   defp determine_value(state, mock) do
     current_value = Map.get(state, mock.module, [])
     case mock.action do
-      :expect -> [ %Mockit.Expectation{module: mock.module, function: mock.function, args: mock.args} | current_value ]
+      :expect -> [ %Placebo.Expectation{module: mock.module, function: mock.function, args: mock.args} | current_value ]
       _ -> current_value
     end
   end

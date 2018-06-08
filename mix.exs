@@ -1,14 +1,14 @@
-defmodule Mockit.MixProject do
+defmodule Placebo.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :mockit,
+      app: :placebo,
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      name: "Mockit"
+      name: "Placebo"
     ]
   end
 
@@ -16,7 +16,7 @@ defmodule Mockit.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Mockit.Application, []}
+      mod: {Placebo.Application, []}
     ]
   end
 

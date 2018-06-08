@@ -1,5 +1,5 @@
-defmodule Mockit.Matchers do
-  import Mockit.Macros
+defmodule Placebo.Matchers do
+  import Placebo.Macros
 
   def any, do: :_
 
