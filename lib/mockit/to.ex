@@ -27,21 +27,10 @@ defmodule Mockit.To do
   end
 
   defp update_mock(%Mock{} = mock) do
-    if not is_mocked?(mock.module) do
-      Agent.update(Mockit.Agent, fn s -> Map.put(s, mock.module, []) end)
+    if not Mockit.Server.is_mock?(mock.module) do
       :meck.new(mock.module, set_opts(mock.opts))
     end
-
-    if mock.action == :expect do
-      expectation = %Mockit.Excpetation{module: mock.module, function: mock.function, args: mock.args}
-      Agent.update(Mockit.Agent, fn s ->
-        Map.put(s, mock.module, [expectation | Map.get(s, mock.module)])
-      end)
-    end
-  end
-
-  defp is_mocked?(module) do
-    Agent.get(Mockit.Agent, fn s -> Map.has_key?(s, module) end)
+    Mockit.Server.add_expectation(mock)
   end
 
   defp set_opts(opts) do

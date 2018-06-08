@@ -10,7 +10,7 @@ defmodule MockitTest do
 
   test "expectations are merged" do
     allow(Mockit.Dummy.get("a")).to return "A"
-    allow(Mockit.Dummy.get(:_)).to return "B"
+    allow(Mockit.Dummy.get(any())).to return "B"
 
     assert Mockit.Dummy.get("a") == "A"
     assert Mockit.Dummy.get("Zebra") == "B"

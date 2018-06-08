@@ -1,4 +1,5 @@
 defmodule Mockit do
+# defmodule Placebo do
 
   @moduledoc """
   Mockit is a mocking library based on [meck](http://eproxus.github.io/meck/).
@@ -78,17 +79,10 @@ defmodule Mockit do
       import Mockit.RetSpecs
       import Mockit.Validators
 
-      setup_all do
-        Agent.start(fn -> Map.new() end, name: Mockit.Agent)
-
-        on_exit(fn -> Agent.stop(Mockit.Agent) end)
-        :ok
-      end
-
       setup do
         on_exit(fn ->
 
-          mocks = Agent.get_and_update(Mockit.Agent, fn s -> {s, Map.new()} end)
+          mocks = Mockit.Server.get()
 
           try do
             Map.values(mocks)
@@ -98,6 +92,7 @@ defmodule Mockit do
                       Mockit.Helpers.failure_message(expectation.module, expectation.function, expectation.args)
             end)
           after
+            Mockit.Server.clear()
             Map.keys(mocks)
             |> Enum.each(fn mock -> :meck.unload(mock) end)
           end
