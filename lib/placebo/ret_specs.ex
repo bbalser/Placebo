@@ -7,6 +7,10 @@ defmodule Placebo.RetSpecs do
     {:loop, list}
   end
 
+  def cycle(list) when is_list(list) do
+    {:loop, list}
+  end
+
   def return(value) do
     {:return, value}
   end

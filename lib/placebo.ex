@@ -6,12 +6,24 @@ defmodule Placebo do
   All the functionality covered below is provided by meck.
   Placebo is just a pretty wrapper around the features of meck.
 
+  To enable just use Placebo in your ExUnit tests
+  ```
+    defmodule SomeTests do
+      use ExUnit.Case
+      use Placebo
+
+      ## some awesome tests
+
+    end
+  ```
+
+
   ## Stubbing
 
   ```
     allow(Some.Module.hello("world")).to return "some value"
   ```
-  This will mock the module "Some.Module" and stub out the hello function with an argument of "world" and return "some value" when called.
+  This will mock the module "Some.Module" and stub out the hello function with an argument of "world" to return "some value" when called.
   Any Elixir term can be returned using this syntax.
 
   If you want more dyanmic behavior you can have a function executed when the mock is called.
@@ -20,7 +32,7 @@ defmodule Placebo do
     allow(Some.Module.hello(any())).to exec fn arg -> String.upcase(arg) end
   ```
 
-  If you pass no argument in the allow section the arguments to the anonymous function will be used for matching.
+  If you pass no arguments in the allow section the arguments to the anonymous function will be used for matching.
   ```
     allow(Some.Module.hello).to exec fn 1 -> "One"
                                         2 -> "Two"
@@ -30,7 +42,7 @@ defmodule Placebo do
   To return different values on subsequent calls use seq or loop
   ```
     allow(Some.Module.hello(any())).to seq([1,2,3,4])
-    allow(Some.Module.hello(any())).to list([1,2,3,4])
+    allow(Some.Module.hello(any())).to loop([1,2,3,4])
   ```
   seq will return the last value for every call after the last one is called
   loop will continue to loop around the list after the last one is called
@@ -93,7 +105,7 @@ defmodule Placebo do
           after
             Placebo.Server.clear()
             Map.keys(mocks)
-            |> Enum.each(fn mock -> :meck.unload(mock) end)
+            |> Enum.each(&:meck.unload/1)
           end
 
         end)
