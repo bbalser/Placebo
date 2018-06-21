@@ -1,4 +1,6 @@
 defmodule Placebo.Dummy do
+  @moduledoc false
+
   defmodule Exception do
     defexception [:message]
   end
