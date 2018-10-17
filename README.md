@@ -1,4 +1,4 @@
-#Placebo
+# Placebo
 
 Placebo is a mocking library based on [meck](http://eproxus.github.io/meck/).
 It is inspired by [RSpec](http://rspec.info/) and [Mock](https://github.com/jjh42/mock).
@@ -42,8 +42,8 @@ allow(Some.Module.hello(any())) |> exec(fn arg -> String.upcase(arg) end)
 If you pass no arguments in the allow section the arguments to the anonymous function will be used for matching.
 ```elixir
 allow Some.Module.hello, exec: fn 1 -> "One"
-                                    2 -> "Two"
-                                    _ -> "Everything else" end
+                                  2 -> "Two"
+                                  _ -> "Everything else" end
 
 # or
 
@@ -65,7 +65,7 @@ allow(Some.Module.hello(any())) |> loop([1,2,3,4])
 seq will return the last value for every call after the last one is called
 loop will continue to loop around the list after the last one is called
 
-# Argument Matching
+## Argument Matching
 
 Any term passed in as an argument will be matched exactly.
 `Placebo.Matchers` provides several argument matchers to be used for more dynamic scenarios.
@@ -90,7 +90,7 @@ allow(Some.Module.hello(is(fn arg -> rem(arg,2) == 0 end)))) |> return("Even")
 allow(Some.Module.hello(any())) |> return("Odd")
 ```
 
-# Verification
+## Verification
 
 Verification is done with assert_called and refute_called.
 All argument matchers also work in the verification step.
