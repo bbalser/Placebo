@@ -31,4 +31,24 @@ defmodule Placebo.MatchersTest do
     assert Placebo.Dummy.get(3) == "Odd"
   end
 
+  test "any() allows any argument" do
+    allow Placebo.Dummy.get(any()), return: :ANY
+    assert Placebo.Dummy.get(:atom) == :ANY
+    assert Placebo.Dummy.get("string") == :ANY
+    assert Placebo.Dummy.get(1) == :ANY
+    assert Placebo.Dummy.get({:tuple, 0}) == :ANY
+    assert Placebo.Dummy.get(["a", "list"]) == :ANY
+    assert Placebo.Dummy.get(%{map: "value"}) == :ANY
+  end
+
+  test "term() allows any argument" do
+    allow Placebo.Dummy.get(term()), return: :TERM
+    assert Placebo.Dummy.get(:atom) == :TERM
+    assert Placebo.Dummy.get("string") == :TERM
+    assert Placebo.Dummy.get(1) == :TERM
+    assert Placebo.Dummy.get({:tuple, 0}) == :TERM
+    assert Placebo.Dummy.get(["a", "list"]) == :TERM
+    assert Placebo.Dummy.get(%{map: "value"}) == :TERM
+  end
+
 end
