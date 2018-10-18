@@ -22,13 +22,6 @@ defmodule PlaceboTest do
     assert Placebo.Dummy.get("Zebra") == "B"
   end
 
-  test "Can match any arguments" do
-    allow Placebo.Dummy.get(any()), return: "Jerks"
-
-    assert Placebo.Dummy.get("a") == "Jerks"
-    assert Placebo.Dummy.get("b") == "Jerks"
-  end
-
   test "Can execute function but match on given args" do
     allow Placebo.Dummy.get("a"), exec: fn _ -> "One" end
     allow Placebo.Dummy.get(any()), return: "Two"

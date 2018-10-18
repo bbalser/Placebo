@@ -2,6 +2,7 @@ defmodule Placebo.Matchers do
   import Placebo.Macros
 
   def any, do: :_
+  defdelegate term, to: __MODULE__, as: :any
 
   matcher :is_true, do: arg == true
   matcher :is_false, do: arg == false
