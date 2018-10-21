@@ -6,4 +6,5 @@
   "hamcrest": {:hex, :hamcrest, "0.1.3", "6c79b5bbdde0bea1563e1ce4810ff89fdcec41ab1019dcaace146c4925506b65", [:make, :rebar3], [], "hexpm"},
   "meck": {:hex, :meck, "0.8.9", "64c5c0bd8bcca3a180b44196265c8ed7594e16bcc845d0698ec6b4e577f48188", [:rebar3], [], "hexpm"},
   "mix_test_watch": {:hex, :mix_test_watch, "0.6.0", "5e206ed04860555a455de2983937efd3ce79f42bd8536fc6b900cc286f5bb830", [:mix], [{:file_system, "~> 0.2.1 or ~> 0.3", [hex: :file_system, repo: "hexpm", optional: false]}], "hexpm"},
+  "stream_data": {:hex, :stream_data, "0.4.2", "fa86b78c88ec4eaa482c0891350fcc23f19a79059a687760ddcf8680aac2799b", [:mix], [], "hexpm"},
 }

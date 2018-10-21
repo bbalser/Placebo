@@ -137,8 +137,6 @@ defmodule Placebo do
             end)
           after
             Placebo.Server.clear()
-            Map.keys(mocks)
-            |> Enum.each(&:meck.unload/1)
           end
 
         end)
@@ -226,6 +224,8 @@ defmodule Placebo do
       false -> [:no_link, :merge_expects | opts]
     end
   end
+
+  defdelegate unstub, to: Placebo.Server, as: :clear
 
   def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
     Placebo.Actions.return(mock, value)
