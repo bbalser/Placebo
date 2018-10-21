@@ -33,6 +33,8 @@ defmodule Placebo.Server do
   end
 
   def handle_cast(:clear, _state) do
+    :meck.unload()
+
     Map.new()
     |> noreply()
   end

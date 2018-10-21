@@ -1,6 +1,7 @@
 defmodule PlaceboTest do
   use ExUnit.Case
   use Placebo
+  use ExUnitProperties
 
   test "Can stub out static value" do
     allow Placebo.Dummy.get(1), return: "Hello"
@@ -144,6 +145,28 @@ defmodule PlaceboTest do
     expect Placebo.Dummy.get("a"), return: "Browns"
 
     assert Placebo.Dummy.get("a") == "Browns"
+  end
+
+  describe "property-based testing" do
+    property "is possible with allow" do
+      check all dummy_in <- string(:alphanumeric),
+                dummy_out <- string(:alphanumeric) do
+        allow Placebo.Dummy.get(any()), return: dummy_out
+        assert Placebo.Dummy.get(dummy_in) == dummy_out
+
+        Placebo.unstub()
+      end
+    end
+
+    property "is possible with expect" do
+      check all dummy_in <- string(:alphanumeric),
+                dummy_out <- string(:alphanumeric) do
+        expect Placebo.Dummy.get(dummy_in), return: dummy_out
+        assert Placebo.Dummy.get(dummy_in) == dummy_out
+
+        Placebo.unstub()
+      end
+    end
   end
 
 end
