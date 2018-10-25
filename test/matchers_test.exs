@@ -3,52 +3,52 @@ defmodule Placebo.MatchersTest do
   use Placebo
 
   test "is_true/is_false" do
-    allow Placebo.Dummy.get(is_true()), return: "True"
-    allow Placebo.Dummy.get(is_false()), return: "False"
-    allow Placebo.Dummy.get(any()), return: "Something Else"
+    allow Regex.regex?(is_true()), return: "True"
+    allow Regex.regex?(is_false()), return: "False"
+    allow Regex.regex?(any()), return: "Something Else"
 
-    assert Placebo.Dummy.get(true) == "True"
-    assert Placebo.Dummy.get(false) == "False"
+    assert Regex.regex?(true) == "True"
+    assert Regex.regex?(false) == "False"
   end
 
   test "starts_with/ends_with/string_contains" do
-    allow Placebo.Dummy.get(starts_with("Holy")), return: "Cow"
-    allow Placebo.Dummy.get(ends_with("Cow")), return: "Holy"
-    allow Placebo.Dummy.get(contains_string("middle")), return: "Middle"
-    allow Placebo.Dummy.get(any()), return: "Error"
+    allow Regex.regex?(starts_with("Holy")), return: "Cow"
+    allow Regex.regex?(ends_with("Cow")), return: "Holy"
+    allow Regex.regex?(contains_string("in the")), return: "middle"
+    allow Regex.regex?(any()), return: "Error"
 
-    assert Placebo.Dummy.get("Holy Molly") == "Cow"
-    assert Placebo.Dummy.get("Blue Cow") == "Holy"
-    assert Placebo.Dummy.get("man in the middle") == "Middle"
-    assert Placebo.Dummy.get("Holly") == "Error"
+    assert Regex.regex?("Holy Molly") == "Cow"
+    assert Regex.regex?("Blue Cow") == "Holy"
+    assert Regex.regex?("man in the middle") == "middle"
+    assert Regex.regex?("Holly") == "Error"
   end
 
   test "is" do
-    allow Placebo.Dummy.get(is(fn arg -> rem(arg,2) == 0 end)), return: "Even"
-    allow Placebo.Dummy.get(any()), return: "Odd"
+    allow Regex.regex?(is(fn arg -> rem(arg, 2) == 0 end)), return: "Even"
+    allow Regex.regex?(any()), return: "Odd"
 
-    assert Placebo.Dummy.get(4) == "Even"
-    assert Placebo.Dummy.get(3) == "Odd"
+    assert Regex.regex?(4) == "Even"
+    assert Regex.regex?(3) == "Odd"
   end
 
   test "any() allows any argument" do
-    allow Placebo.Dummy.get(any()), return: :ANY
-    assert Placebo.Dummy.get(:atom) == :ANY
-    assert Placebo.Dummy.get("string") == :ANY
-    assert Placebo.Dummy.get(1) == :ANY
-    assert Placebo.Dummy.get({:tuple, 0}) == :ANY
-    assert Placebo.Dummy.get(["a", "list"]) == :ANY
-    assert Placebo.Dummy.get(%{map: "value"}) == :ANY
+    allow Regex.regex?(any()), return: :ANY
+    assert Regex.regex?(:atom) == :ANY
+    assert Regex.regex?("string") == :ANY
+    assert Regex.regex?(1) == :ANY
+    assert Regex.regex?({:tuple, 0}) == :ANY
+    assert Regex.regex?(["a", "list"]) == :ANY
+    assert Regex.regex?(%{map: "value"}) == :ANY
   end
 
   test "term() allows any argument" do
-    allow Placebo.Dummy.get(term()), return: :TERM
-    assert Placebo.Dummy.get(:atom) == :TERM
-    assert Placebo.Dummy.get("string") == :TERM
-    assert Placebo.Dummy.get(1) == :TERM
-    assert Placebo.Dummy.get({:tuple, 0}) == :TERM
-    assert Placebo.Dummy.get(["a", "list"]) == :TERM
-    assert Placebo.Dummy.get(%{map: "value"}) == :TERM
+    allow Regex.regex?(term()), return: :TERM
+    assert Regex.regex?(:atom) == :TERM
+    assert Regex.regex?("string") == :TERM
+    assert Regex.regex?(1) == :TERM
+    assert Regex.regex?({:tuple, 0}) == :TERM
+    assert Regex.regex?(["a", "list"]) == :TERM
+    assert Regex.regex?(%{map: "value"}) == :TERM
   end
 
 end
