@@ -190,12 +190,15 @@ defmodule Placebo do
 
   defmacro assert_called({{:., _, [module, f]}, _, args}, validator \\ :any) do
     quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
-      result = case validator do
-          {:times, n} -> n == :meck.num_calls(module, f, args)
-          _ -> :meck.called(module, f, args)
-        end
+      result = Placebo.Helpers.called?(module, f, args, validator)
 
       assert(result, Placebo.Helpers.failure_message(module,f,args))
+    end
+  end
+
+  defmacro called?({{:., _, [module, f]}, _, args}, validator \\ :any) do
+    quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
+      Placebo.Helpers.called?(module, f, args, validator)
     end
   end
 
