@@ -90,6 +90,14 @@ defmodule PlaceboTest do
     assert_called(Placebo.Dummy.get("a"))
   end
 
+  test "called? validates call to mock was made" do
+    allow Regex.regex?(any()), return: "Testing"
+
+    Regex.regex?("anything")
+
+    assert true == called?(Regex.regex?(any()))
+  end
+
   test "validator once" do
     allow Placebo.Dummy.get(any()), return: "Testing"
 

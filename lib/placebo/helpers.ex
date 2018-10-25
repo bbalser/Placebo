@@ -17,4 +17,11 @@ defmodule Placebo.Helpers do
       |> Enum.join("\n")
   end
 
+  def called?(module, function, args, validator) do
+    case validator do
+      {:times, n} -> n == :meck.num_calls(module, function, args)
+      _ -> :meck.called(module, function, args)
+    end
+  end
+
 end
