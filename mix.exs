@@ -34,7 +34,7 @@ defmodule Placebo.MixProject do
 
   defp package do
     [
-      maintainers: ["Brian Balser"],
+      maintainers: ["Brian Balser", "Johnson Denen"],
       licenses: ["Apache 2.0"],
       links: %{"GitHub" => "https://github.com/bbalser/Placebo"}
     ]
