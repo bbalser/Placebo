@@ -98,6 +98,25 @@ defmodule PlaceboTest do
     assert true == called?(Regex.regex?(any()))
   end
 
+  test "num_calls return how many matched calls" do
+    allow Regex.regex?(any()), return: "Testing"
+
+    Regex.regex?("one")
+    Regex.regex?("one")
+    Regex.regex?("two")
+
+    assert 2 == num_calls(Regex.regex?("one"))
+    assert 1 == num_calls(Regex.regex?(is(fn p -> p == "two" end)))
+  end
+
+  test "num_calls returns how many matched calls based on function matcher" do
+    allow Regex.regex?(any()), return: "Testing"
+
+    Regex.regex?("two")
+
+    assert 1 == num_calls(Regex.regex?(is(&(&1 == "two"))))
+  end
+
   test "validator once" do
     allow Regex.regex?(any()), return: true
 
