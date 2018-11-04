@@ -16,6 +16,14 @@ defmodule SomeTests do
 end
 ```
 
+To ignore parentheses around mocks when running `mix format`, import your `:placebo` dependency in `.formatter.exs`:
+```elixir
+[
+  inputs: ["mix.exs", "{config,lib,test}/**/*.{ex,exs}"],
+  import_deps: [:placebo]
+]
+```
+
 ## Stubbing
 
 ```elixir
