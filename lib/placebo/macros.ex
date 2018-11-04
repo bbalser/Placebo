@@ -1,5 +1,4 @@
 defmodule Placebo.Macros do
-
   defmacro matcher(name, do: block) do
     if references_input_variable?(block) do
       quote do
@@ -17,10 +16,11 @@ defmodule Placebo.Macros do
   end
 
   defp references_input_variable?(block) do
-    {_, result} = Macro.prewalk(block, false, fn exp, so_far ->
-      { exp, match?({:input,_,_}, exp) || so_far }
-    end)
+    {_, result} =
+      Macro.prewalk(block, false, fn exp, so_far ->
+        {exp, match?({:input, _, _}, exp) || so_far}
+      end)
+
     result
   end
-
 end

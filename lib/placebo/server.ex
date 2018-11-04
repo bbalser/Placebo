@@ -46,13 +46,13 @@ defmodule Placebo.Server do
 
   defp determine_value(state, mock) do
     current_value = Map.get(state, mock.module, [])
+
     case mock.action do
-      :expect -> [ %Placebo.Expectation{module: mock.module, function: mock.function, args: mock.args} | current_value ]
+      :expect -> [%Placebo.Expectation{module: mock.module, function: mock.function, args: mock.args} | current_value]
       _ -> current_value
     end
   end
 
   defp noreply(new_state), do: {:noreply, new_state}
   defp reply(value, new_state), do: {:reply, value, new_state}
-
 end

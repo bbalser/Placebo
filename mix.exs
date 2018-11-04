@@ -10,7 +10,7 @@ defmodule Placebo.MixProject do
       description: description(),
       package: package(),
       deps: deps(),
-      name: "Placebo",
+      name: "Placebo"
     ]
   end
 
@@ -43,5 +43,4 @@ defmodule Placebo.MixProject do
   defp description do
     "A mocking library for ExUnit inspired by RSpec and based on meck."
   end
-
 end

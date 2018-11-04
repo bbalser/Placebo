@@ -38,8 +38,11 @@ defmodule PlaceboTest do
   end
 
   test "When no matcher given to mock with exec call, function args are matchers" do
-    allow Regex.regex?, exec: fn "one" -> 1
-                                  "two" -> 2 end
+    allow Regex.regex?(),
+      exec: fn
+        "one" -> 1
+        "two" -> 2
+      end
 
     assert Regex.regex?("one") == 1
     assert Regex.regex?("two") == 2
@@ -194,5 +197,4 @@ defmodule PlaceboTest do
       end
     end
   end
-
 end

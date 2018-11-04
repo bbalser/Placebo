@@ -1,5 +1,4 @@
 defmodule Placebo.Helpers do
-
   def failure_message(module, function, args) do
     "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{format_history(module)}"
   end
@@ -10,11 +9,11 @@ defmodule Placebo.Helpers do
   end
 
   def format_history(module) do
-      :meck.history(module)
-      |> Enum.map(fn {_pid, {m, f, a}, _ret} ->
-        "\t#{m}.#{to_string(f)}(#{inspect(a)})"
-      end)
-      |> Enum.join("\n")
+    :meck.history(module)
+    |> Enum.map(fn {_pid, {m, f, a}, _ret} ->
+      "\t#{m}.#{to_string(f)}(#{inspect(a)})"
+    end)
+    |> Enum.join("\n")
   end
 
   def called?(module, function, args, validator) do
@@ -23,5 +22,4 @@ defmodule Placebo.Helpers do
       _ -> :meck.called(module, function, args)
     end
   end
-
 end

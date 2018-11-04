@@ -27,5 +27,4 @@ defmodule Placebo.Matchers do
   def is(function) when is_function(function) do
     :meck.is(function)
   end
-
 end
