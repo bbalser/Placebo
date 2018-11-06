@@ -1,5 +1,4 @@
 defmodule Placebo do
-
   @moduledoc """
   Placebo is a mocking library based on [meck](http://eproxus.github.io/meck/).
   It is inspired by [RSpec](http://rspec.info/) and [Mock](https://github.com/jjh42/mock).
@@ -125,7 +124,6 @@ defmodule Placebo do
 
       setup do
         on_exit(fn ->
-
           mocks = Placebo.Server.get()
 
           try do
@@ -133,12 +131,15 @@ defmodule Placebo do
             |> List.flatten()
             |> Enum.each(fn expectation ->
               assert :meck.called(expectation.module, expectation.function, expectation.args),
-                      Placebo.Helpers.failure_message(expectation.module, expectation.function, expectation.args)
+                     Placebo.Helpers.failure_message(
+                       expectation.module,
+                       expectation.function,
+                       expectation.args
+                     )
             end)
           after
             Placebo.Server.clear()
           end
-
         end)
 
         :ok
@@ -169,11 +170,17 @@ defmodule Placebo do
   end
 
   defmacro expect({{:., _, [module, f]}, _, args}, opts \\ []) do
-    record_expectation(module,f, args, opts, :expect)
+    record_expectation(module, f, args, opts, :expect)
   end
 
   defp record_expectation(module, function, args, opts, action) do
-    quote bind_quoted: [module: module, function: function, args: args, opts: opts, action: action] do
+    quote bind_quoted: [
+            module: module,
+            function: function,
+            args: args,
+            opts: opts,
+            action: action
+          ] do
       mock = %Placebo.Mock{
         module: module,
         function: function,
@@ -191,7 +198,7 @@ defmodule Placebo do
   defmacro assert_called({{:., _, [module, f]}, _, args}, validator \\ :any) do
     quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
       Placebo.Helpers.called?(module, f, args, validator)
-      |> assert(Placebo.Helpers.failure_message(module,f,args))
+      |> assert(Placebo.Helpers.failure_message(module, f, args))
     end
   end
 
@@ -210,7 +217,7 @@ defmodule Placebo do
   defmacro refute_called({{:., _, [module, f]}, _, args}, validator \\ :any) do
     quote bind_quoted: [module: module, f: f, args: args, validator: validator] do
       Placebo.Helpers.called?(module, f, args, validator)
-      |> refute(Placebo.Helpers.failure_message(module,f,args))
+      |> refute(Placebo.Helpers.failure_message(module, f, args))
     end
   end
 
@@ -218,6 +225,7 @@ defmodule Placebo do
     if not Placebo.Server.is_mock?(mock.module) do
       :meck.new(mock.module, set_opts(mock.opts))
     end
+
     Placebo.Server.add_expectation(mock)
   end
 
@@ -233,15 +241,18 @@ defmodule Placebo do
   def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
     Placebo.Actions.return(mock, value)
   end
+
   def set_expectation(%Placebo.Mock{} = mock, {:exec, function}) do
     Placebo.Actions.exec(mock, function)
   end
+
   def set_expectation(%Placebo.Mock{} = mock, {:seq, list}) do
     Placebo.Actions.seq(mock, list)
   end
+
   def set_expectation(%Placebo.Mock{} = mock, {:loop, list}) do
     Placebo.Actions.loop(mock, list)
   end
-  def set_expectation(_mock, _keyword), do: nil
 
+  def set_expectation(_mock, _keyword), do: nil
 end

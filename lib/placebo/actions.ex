@@ -1,5 +1,4 @@
 defmodule Placebo.Actions do
-
   def return(%Placebo.Mock{} = mock, value) do
     :meck.expect(mock.module, mock.function, mock.args, :meck.val(value))
   end
@@ -18,5 +17,4 @@ defmodule Placebo.Actions do
   def loop(%Placebo.Mock{} = mock, list) do
     :meck.expect(mock.module, mock.function, mock.args, :meck.loop(list))
   end
-
 end

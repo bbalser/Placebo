@@ -50,5 +50,4 @@ defmodule Placebo.MatchersTest do
     assert Regex.regex?(["a", "list"]) == :TERM
     assert Regex.regex?(%{map: "value"}) == :TERM
   end
-
 end

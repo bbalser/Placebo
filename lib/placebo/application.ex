@@ -8,5 +8,4 @@ defmodule Placebo.Application do
 
     Supervisor.start_link(children, name: Placebo.Supervisor, strategy: :one_for_one)
   end
-
 end
