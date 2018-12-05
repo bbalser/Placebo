@@ -24,6 +24,8 @@ defmodule Placebo.Matchers do
   matcher :is_alive, do: Process.alive?(arg)
   matcher :is_dead, do: not Process.alive?(arg)
 
+  matcher :matching, do: Regex.match?(input, arg)
+
   def is(function) when is_function(function) do
     :meck.is(function)
   end

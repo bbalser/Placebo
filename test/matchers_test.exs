@@ -50,4 +50,15 @@ defmodule Placebo.MatchersTest do
     assert Regex.regex?(["a", "list"]) == :TERM
     assert Regex.regex?(%{map: "value"}) == :TERM
   end
+
+  test "matching" do
+    allow URI.decode(matching(~r/bar/)), return: :bar
+    allow URI.decode(matching(~r/baz/)), return: :baz
+    allow URI.decode(any()), return: :no_match
+
+    assert URI.decode("foobar") == :bar
+    assert URI.decode("barndoor") == :bar
+    assert URI.decode("foobaz") == :baz
+    assert URI.decode("other") == :no_match
+  end
 end
