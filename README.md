@@ -128,7 +128,7 @@ by adding `placebo` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:placebo, "~> 1.1", only: :test}
+    {:placebo, "~> 1.2", only: :test}
   ]
 end
 ```
