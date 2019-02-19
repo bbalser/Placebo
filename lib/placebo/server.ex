@@ -11,7 +11,7 @@ defmodule Placebo.Server do
 
   ## CLIENT
 
-  def clear, do: GenServer.cast(__MODULE__, :clear)
+  def clear, do: GenServer.call(__MODULE__, :clear)
 
   def get, do: GenServer.call(__MODULE__, :get)
 
@@ -32,11 +32,10 @@ defmodule Placebo.Server do
     |> reply(state)
   end
 
-  def handle_cast(:clear, _state) do
+  def handle_call(:clear, _from, _state) do
     :meck.unload()
 
-    Map.new()
-    |> noreply()
+    reply(:ok, Map.new())
   end
 
   def handle_cast({:add, %Placebo.Mock{} = mock}, state) do
