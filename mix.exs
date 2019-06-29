@@ -4,7 +4,7 @@ defmodule Placebo.MixProject do
   def project do
     [
       app: :placebo,
-      version: "1.2.1",
+      version: "1.2.2",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       description: description(),
@@ -25,7 +25,7 @@ defmodule Placebo.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:meck, "~> 0.8.9"},
+      {:meck, "~> 0.8.13"},
       {:mix_test_watch, "~> 0.6.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
       {:stream_data, "~> 0.4", only: [:dev, :test]}
