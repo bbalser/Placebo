@@ -10,10 +10,16 @@ defmodule Placebo.Helpers do
 
   def format_history(module) do
     :meck.history(module)
-    |> Enum.map(fn {_pid, {m, f, a}, _ret} ->
-      "\t#{m}.#{to_string(f)}(#{inspect(a)})"
-    end)
+    |> Enum.map(&format_call/1)
     |> Enum.join("\n")
+  end
+
+  defp format_call({_pid, {m, f, a}, _result}) do
+    "\t#{m}.#{to_string(f)}(#{inspect(a)})"
+  end
+
+  defp format_call({_pid, {m, f, a}, _error, _reason, _stack_trace}) do
+    "\t#{m}.#{to_string(f)}(#{inspect(a)})"
   end
 
   def called?(module, function, args, validator) do
