@@ -1,20 +1,25 @@
 defmodule Placebo.Actions do
-  def return(%Placebo.Mock{} = mock, value) do
-    :meck.expect(mock.module, mock.function, mock.args, :meck.val(value))
+  def return({module, function, args, expect?, default_function}, value) do
+    action = %Placebo.Action.Return{value: value}
+    stub(module, function, args, action, expect?, default_function)
   end
 
-  def exec(%Placebo.Mock{} = mock, function) do
-    case Enum.count(mock.args) do
-      0 -> :meck.expect(mock.module, mock.function, function)
-      _ -> :meck.expect(mock.module, mock.function, mock.args, :meck.exec(function))
-    end
+  def exec({module, function, args, expect?, default_function}, exec_function) do
+    action = %Placebo.Action.Exec{function: exec_function}
+    stub(module, function, args, action, expect?, default_function)
   end
 
-  def seq(%Placebo.Mock{} = mock, list) do
-    :meck.expect(mock.module, mock.function, mock.args, :meck.seq(list))
+  def seq({module, function, args, expect?, default_function}, list) do
+    action = %Placebo.Action.Seq{values: list}
+    stub(module, function, args, action, expect?, default_function)
   end
 
-  def loop(%Placebo.Mock{} = mock, list) do
-    :meck.expect(mock.module, mock.function, mock.args, :meck.loop(list))
+  def loop({module, function, args, expect?, default_function}, list) do
+    action = %Placebo.Action.Loop{values: list}
+    stub(module, function, args, action, expect?, default_function)
+  end
+
+  defp stub(module, function, args, action, expect?, default_function) do
+    Placebo.Server.stub(module, function, args, action, expect?, default_function)
   end
 end

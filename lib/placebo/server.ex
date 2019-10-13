@@ -1,6 +1,5 @@
 defmodule Placebo.Server do
   use GenServer
-  import Placebo.Macros, only: [handler_for: 3]
 
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -10,8 +9,8 @@ defmodule Placebo.Server do
 
   def set_async(async?), do: GenServer.cast(__MODULE__, {:async?, async?})
 
-  def stub(module, function, args, action, expect?) do
-    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?})
+  def stub(module, function, args, action, expect?, default_function) do
+    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?, default_function})
   end
 
   def stubs(module, function, arity) do
@@ -22,10 +21,7 @@ defmodule Placebo.Server do
     GenServer.cast(__MODULE__, {:update, module, stub, state})
   end
 
-  def clear do
-    :ok
-  end
-  # def clear, do: GenServer.call(__MODULE__, :clear)
+  def clear, do: GenServer.call(__MODULE__, :clear)
 
   # def get, do: GenServer.call(__MODULE__, :get)
 
@@ -38,7 +34,7 @@ defmodule Placebo.Server do
   ## SERVER
 
   defmodule Stub do
-    defstruct [:pid, :function, :args, :action, :expect?, :state]
+    defstruct [:pid, :function, :args_matcher, :arity, :action, :expect?, :state]
   end
 
   defmodule State do
@@ -49,13 +45,15 @@ defmodule Placebo.Server do
     {:ok, %State{}}
   end
 
-  def handle_call({:stub, module, function, args, action, expect?}, {pid, _}, state) do
+  def handle_call({:stub, module, function, args, action, expect?, default_function}, {pid, _}, state) do
     arity = length(args)
-    stub = %Stub{pid: pid, function: function, args: args, action: action, expect?: expect?, state: %{}}
+    args_matcher = :meck_args_matcher.new(args)
+    stub = %Stub{pid: pid, function: function, args_matcher: args_matcher, arity: arity, action: action, expect?: expect?, state: %{}}
     stubs = Map.update(state.stubs, module, [stub], fn current -> [stub | current] end)
 
     unless Map.has_key?(state.stubs, module) do
       :meck.new(module, [:passthrough]) #TODO no_link? not sure why I neede that before
+      :meck.expect(module, function, default_function)
     end
 
     reply(:ok, %{state | stubs: stubs})
@@ -63,7 +61,7 @@ defmodule Placebo.Server do
 
   def handle_call({:stubs, module, function, arity}, {_pid, _}, state) do
     Map.get(state.stubs, module, [])
-    |> Enum.filter(fn stub -> stub.function == function && length(stub.args) == arity end)
+    |> Enum.filter(fn stub -> stub.function == function && stub.arity == arity end)
     |> reply(state)
   end
 
@@ -76,11 +74,11 @@ defmodule Placebo.Server do
   #   |> reply(state)
   # end
 
-  # def handle_call(:clear, _from, _state) do
-  #   :meck.unload()
+  def handle_call(:clear, _from, _state) do
+    :meck.unload()
 
-  #   reply(:ok, Map.new())
-  # end
+    reply(:ok, %State{})
+  end
 
   def handle_cast({:async?, async?}, state) do
     noreply(%{state | async?: async?})
@@ -109,6 +107,9 @@ defmodule Placebo.Server do
   #   end
   # end
 
+  # defp validate_arguments(args) do
+  #   Enum.map(args, &validate_argument/1)
+  # end
 
   defp noreply(new_state), do: {:noreply, new_state}
   defp reply(value, new_state), do: {:reply, value, new_state}

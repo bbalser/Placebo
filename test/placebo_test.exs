@@ -24,8 +24,8 @@ defmodule PlaceboTest do
   end
 
   test "Can execute function but match on given args" do
-    allow Regex.regex?("one"), exec: fn x -> x end
     allow Regex.regex?(any()), exec: fn _ -> :two end
+    allow Regex.regex?("one"), exec: fn x -> x end
 
     assert Regex.regex?("one") == "one"
     assert Regex.regex?("two") == :two
@@ -35,17 +35,6 @@ defmodule PlaceboTest do
     allow(Regex.regex?("one")) |> exec(fn _ -> :one end)
 
     assert Regex.regex?("one") == :one
-  end
-
-  test "When no matcher given to mock with exec call, function args are matchers" do
-    allow Regex.regex?(),
-      exec: fn
-        "one" -> 1
-        "two" -> 2
-      end
-
-    assert Regex.regex?("one") == 1
-    assert Regex.regex?("two") == 2
   end
 
   test "Can create sequence of stubs" do
