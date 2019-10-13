@@ -33,6 +33,7 @@ defmodule Placebo.Action.Seq do
   defimpl Placebo.Action, for: Placebo.Action.Seq do
     def invoke(%Placebo.Action.Seq{values: values}, _args, state) do
       index = Map.get(state, :index, -1) + 1
+
       case index >= length(values) do
         true -> {List.last(values), state}
         false -> {Enum.at(values, index), %{index: index}}
@@ -47,6 +48,7 @@ defmodule Placebo.Action.Loop do
   defimpl Placebo.Action, for: Placebo.Action.Loop do
     def invoke(%Placebo.Action.Loop{values: values}, _args, state) do
       index = Map.get(state, :index, -1) + 1
+
       case index >= length(values) do
         true -> {Enum.at(values, 0), %{index: 0}}
         false -> {Enum.at(values, index), %{index: index}}
