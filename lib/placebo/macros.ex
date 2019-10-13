@@ -26,13 +26,16 @@ defmodule Placebo.Macros do
 
   def handler_for(module, function, arity) do
     function_arguments = Macro.generate_arguments(arity, :"Elixir")
+
     quote location: :keep do
       fn unquote_splicing(function_arguments) ->
         args = [unquote_splicing(function_arguments)]
         stubs = Placebo.Server.stubs(unquote(module), unquote(function), unquote(arity))
 
         case Enum.find(stubs, fn stub -> :meck_args_matcher.match(args, stub.args_matcher) end) do
-          nil -> :meck.passthrough(args)
+          nil ->
+            :meck.passthrough(args)
+
           stub ->
             {action_result, new_state} = Placebo.Action.invoke(stub.action, args, stub.state)
             Placebo.Server.update_stub_state(unquote(module), stub, new_state)

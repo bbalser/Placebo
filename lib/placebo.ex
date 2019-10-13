@@ -40,19 +40,6 @@ defmodule Placebo do
     allow(Some.Module.hello(any())) |> exec(fn arg -> String.upcase(arg) end)
   ```
 
-  If you pass no arguments in the allow section the arguments to the anonymous function will be used for matching.
-  ```
-    allow Some.Module.hello, exec: fn 1 -> "One"
-                                        2 -> "Two"
-                                        _ -> "Everything else" end
-
-    or
-
-    allow(Some.Module.hello) |> exec(fn 1 -> "One"
-                                        2 -> "Two"
-                                        _ -> "Everything else" end)
-  ```
-
   To return different values on subsequent calls use seq or loop
   ```
     allow Some.Module.hello(any()), seq: [1,2,3,4]
@@ -132,9 +119,10 @@ defmodule Placebo do
 
         Placebo.Server.set_async(async?)
 
+        test_pid = self()
+
         on_exit(fn ->
-          # mocks = Placebo.Server.get()
-          mocks = %{}
+          stubs = Placebo.Server.expects(test_pid)
 
           try do
             Map.values(mocks)
@@ -195,7 +183,6 @@ defmodule Placebo do
             expect?: expect?,
             default_function: Placebo.Macros.handler_for(module, function, length(args))
           ] do
-
       mock_config = {module, function, args, expect?, default_function}
       setup_mock(mock_config, Map.new(opts))
       mock_config
@@ -268,5 +255,4 @@ defmodule Placebo do
   # end
 
   # def set_expectation(_mock, _keyword), do: nil
-
 end
