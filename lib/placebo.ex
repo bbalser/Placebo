@@ -122,7 +122,13 @@ defmodule Placebo do
       import Placebo.Validators
       import Placebo.Actions
 
-      setup do
+      setup(context) do
+        async? = Map.get(context, :async, false)
+
+        if async? == false do
+          Placebo.Server.clear()
+        end
+
         on_exit(fn ->
           mocks = Placebo.Server.get()
 
@@ -138,7 +144,9 @@ defmodule Placebo do
                      )
             end)
           after
-            Placebo.Server.clear()
+            if async? == false do
+              Placebo.Server.clear()
+            end
           end
         end)
 
