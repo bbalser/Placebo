@@ -59,11 +59,19 @@ defmodule Placebo.Server do
     reply(:ok, %{state | stubs: stubs})
   end
 
-  def handle_call({:stubs, module, function, arity}, {_pid, _}, state) do
+  def handle_call({:stubs, module, function, arity}, {caller_pid, _}, %{async?: true} = state) do
+    ancestors = ancestors(caller_pid)
+    Map.get(state.stubs, module, [])
+    |> Enum.filter(fn stub -> stub.pid in ancestors && stub.function == function && stub.arity == arity end)
+    |> reply(state)
+  end
+
+  def handle_call({:stubs, module, function, arity}, _from, state) do
     Map.get(state.stubs, module, [])
     |> Enum.filter(fn stub -> stub.function == function && stub.arity == arity end)
     |> reply(state)
   end
+
 
   # def handle_call(:get, _from, state) do
   #   reply(state, state)
@@ -110,6 +118,16 @@ defmodule Placebo.Server do
   # defp validate_arguments(args) do
   #   Enum.map(args, &validate_argument/1)
   # end
+
+  defp ancestors(pid) do
+    ancestors = 
+      pid
+      |> Process.info()
+      |> Keyword.get(:dictionary)
+      |> Keyword.get(:"$ancestors", [])
+
+    [pid | ancestors]
+  end
 
   defp noreply(new_state), do: {:noreply, new_state}
   defp reply(value, new_state), do: {:reply, value, new_state}

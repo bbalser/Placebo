@@ -130,6 +130,8 @@ defmodule Placebo do
           Placebo.Server.clear()
         end
 
+        Placebo.Server.set_async(async?)
+
         on_exit(fn ->
           # mocks = Placebo.Server.get()
           mocks = %{}
