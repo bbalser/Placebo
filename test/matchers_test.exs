@@ -3,19 +3,19 @@ defmodule Placebo.MatchersTest do
   use Placebo
 
   test "is_true/is_false" do
+    allow Regex.regex?(any()), return: "Something Else"
     allow Regex.regex?(is_true()), return: "True"
     allow Regex.regex?(is_false()), return: "False"
-    allow Regex.regex?(any()), return: "Something Else"
 
     assert Regex.regex?(true) == "True"
     assert Regex.regex?(false) == "False"
   end
 
   test "starts_with/ends_with/string_contains" do
+    allow Regex.regex?(any()), return: "Error"
     allow Regex.regex?(starts_with("Holy")), return: "Cow"
     allow Regex.regex?(ends_with("Cow")), return: "Holy"
     allow Regex.regex?(contains_string("in the")), return: "middle"
-    allow Regex.regex?(any()), return: "Error"
 
     assert Regex.regex?("Holy Molly") == "Cow"
     assert Regex.regex?("Blue Cow") == "Holy"
@@ -24,8 +24,8 @@ defmodule Placebo.MatchersTest do
   end
 
   test "is" do
-    allow Regex.regex?(is(fn arg -> rem(arg, 2) == 0 end)), return: "Even"
     allow Regex.regex?(any()), return: "Odd"
+    allow Regex.regex?(is(fn arg -> rem(arg, 2) == 0 end)), return: "Even"
 
     assert Regex.regex?(4) == "Even"
     assert Regex.regex?(3) == "Odd"
@@ -52,9 +52,9 @@ defmodule Placebo.MatchersTest do
   end
 
   test "matching" do
+    allow URI.decode(any()), return: :no_match
     allow URI.decode(matching(~r/bar/)), return: :bar
     allow URI.decode(matching(~r/baz/)), return: :baz
-    allow URI.decode(any()), return: :no_match
 
     assert URI.decode("foobar") == :bar
     assert URI.decode("barndoor") == :bar
