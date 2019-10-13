@@ -5,10 +5,6 @@ defmodule Placebo.Server do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def init(_args) do
-    {:ok, Map.new()}
-  end
-
   ## CLIENT
 
   def clear, do: GenServer.call(__MODULE__, :clear)
@@ -22,6 +18,15 @@ defmodule Placebo.Server do
   end
 
   ## SERVER
+
+  defmodule State do
+    defstruct stubs: %{},
+              expectations: %{}
+  end
+
+  def init(_args) do
+    {:ok, Map.new()}
+  end
 
   def handle_call(:get, _from, state) do
     reply(state, state)

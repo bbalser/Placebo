@@ -178,8 +178,10 @@ defmodule PlaceboTest do
 
   describe "property-based testing" do
     property "is possible with allow" do
-      check all dummy_in <- string(:alphanumeric),
-                dummy_out <- string(:alphanumeric) do
+      check all(
+              dummy_in <- string(:alphanumeric),
+              dummy_out <- string(:alphanumeric)
+            ) do
         allow Regex.regex?(any()), return: dummy_out
         assert Regex.regex?(dummy_in) == dummy_out
 
@@ -188,8 +190,10 @@ defmodule PlaceboTest do
     end
 
     property "is possible with expect" do
-      check all dummy_in <- string(:alphanumeric),
-                dummy_out <- string(:alphanumeric) do
+      check all(
+              dummy_in <- string(:alphanumeric),
+              dummy_out <- string(:alphanumeric)
+            ) do
         expect Regex.regex?(any()), return: dummy_out
         assert Regex.regex?(dummy_in) == dummy_out
 
