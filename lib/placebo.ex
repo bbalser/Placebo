@@ -193,17 +193,10 @@ defmodule Placebo do
             expect?: expect?,
             default_function: Placebo.Macros.handler_for(module, function, length(args))
           ] do
-      # mock = %Placebo.Mock{
-      #   module: module,
-      #   function: function,
-      #   args: args,
-      #   opts: Keyword.get(opts, :meck_options, []),
-      #   action: action
-      # }
 
-      action = Placebo.determine_action(opts)
-      Placebo.Server.stub(module, function, args, action, expect?)
-      :meck.expect(module, function, default_function)
+      mock_config = {module, function, args, expect?, default_function}
+      setup_mock(mock_config, Map.new(opts))
+      mock_config
     end
   end
 
@@ -233,15 +226,11 @@ defmodule Placebo do
     end
   end
 
-  def determine_action(opts) do
-    cond do
-      Keyword.has_key?(opts, :return) -> %Placebo.Action.Return{value: Keyword.get(opts, :return)}
-      Keyword.has_key?(opts, :exec) -> %Placebo.Action.Exec{function: Keyword.get(opts, :exec)}
-      Keyword.has_key?(opts, :seq) -> %Placebo.Action.Seq{values: Keyword.get(opts, :seq)}
-      Keyword.has_key?(opts, :loop) -> %Placebo.Action.Loop{values: Keyword.get(opts, :loop)}
-      true -> raise "No action specified in Placebo stub, #{inspect(opts)}"
-    end
-  end
+  def setup_mock(mock_config, %{return: value}), do: Placebo.Actions.return(mock_config, value)
+  def setup_mock(mock_config, %{exec: function}), do: Placebo.Actions.exec(mock_config, function)
+  def setup_mock(mock_config, %{seq: values}), do: Placebo.Actions.seq(mock_config, values)
+  def setup_mock(mock_config, %{loop: values}), do: Placebo.Actions.loop(mock_config, values)
+  def setup_mock(_, _), do: :ok
 
   # def update_mock(%Placebo.Mock{} = mock) do
   #   if not Placebo.Server.is_mock?(mock.module) do
@@ -258,7 +247,7 @@ defmodule Placebo do
   #   end
   # end
 
-  # defdelegate unstub, to: Placebo.Server, as: :clear
+  defdelegate unstub, to: Placebo.Server, as: :clear
 
   # def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
   #   Placebo.Actions.return(mock, value)

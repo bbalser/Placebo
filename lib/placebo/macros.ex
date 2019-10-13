@@ -31,14 +31,7 @@ defmodule Placebo.Macros do
         args = [unquote_splicing(function_arguments)]
         stubs = Placebo.Server.stubs(unquote(module), unquote(function), unquote(arity))
 
-        pattern_match = fn pattern, value ->
-          ast = quote do: match?(unquote(pattern), unquote(value))
-          {result, _} = Code.eval_quoted(ast)
-
-          result
-        end
-
-        case Enum.find(stubs, fn stub -> pattern_match.(stub.args, args) end) do
+        case Enum.find(stubs, fn stub -> :meck_args_matcher.match(args, stub.args_matcher) end) do
           nil -> :meck.passthrough(args)
           stub ->
             {action_result, new_state} = Placebo.Action.invoke(stub.action, args, stub.state)
