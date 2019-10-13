@@ -121,6 +121,7 @@ defmodule Placebo do
       import Placebo.Matchers
       import Placebo.Validators
       import Placebo.Actions
+      require Placebo.Macros
 
       setup(context) do
         async? = Map.get(context, :async, false)
@@ -130,7 +131,8 @@ defmodule Placebo do
         end
 
         on_exit(fn ->
-          mocks = Placebo.Server.get()
+          # mocks = Placebo.Server.get()
+          mocks = %{}
 
           try do
             Map.values(mocks)
@@ -174,32 +176,34 @@ defmodule Placebo do
   end
 
   defmacro allow({{:., _, [module, f]}, _, args}, opts \\ []) do
-    record_expectation(module, f, args, opts, :allow)
+    record_expectation(module, f, args, opts, false)
   end
 
   defmacro expect({{:., _, [module, f]}, _, args}, opts \\ []) do
-    record_expectation(module, f, args, opts, :expect)
+    record_expectation(module, f, args, opts, true)
   end
 
-  defp record_expectation(module, function, args, opts, action) do
+  defp record_expectation(module, function, args, opts, expect?) do
     quote bind_quoted: [
             module: module,
             function: function,
             args: args,
+            arity: length(args),
             opts: opts,
-            action: action
+            expect?: expect?,
+            default_function: Placebo.Macros.handler_for(module, function, length(args))
           ] do
-      mock = %Placebo.Mock{
-        module: module,
-        function: function,
-        args: args,
-        opts: Keyword.get(opts, :meck_options, []),
-        action: action
-      }
+      # mock = %Placebo.Mock{
+      #   module: module,
+      #   function: function,
+      #   args: args,
+      #   opts: Keyword.get(opts, :meck_options, []),
+      #   action: action
+      # }
 
-      Placebo.update_mock(mock)
-      Enum.each(opts, fn keyword -> Placebo.set_expectation(mock, keyword) end)
-      mock
+      action = Placebo.determine_action(opts)
+      Placebo.Server.stub(module, function, args, action, expect?)
+      :meck.expect(module, function, default_function)
     end
   end
 
@@ -229,38 +233,49 @@ defmodule Placebo do
     end
   end
 
-  def update_mock(%Placebo.Mock{} = mock) do
-    if not Placebo.Server.is_mock?(mock.module) do
-      :meck.new(mock.module, set_opts(mock.opts))
-    end
-
-    Placebo.Server.add_expectation(mock)
-  end
-
-  defp set_opts(opts) do
-    case Enum.member?(opts, :passthrough) do
-      true -> [:no_link | opts]
-      false -> [:no_link, :merge_expects | opts]
+  def determine_action(opts) do
+    cond do
+      Keyword.has_key?(opts, :return) -> %Placebo.Action.Return{value: Keyword.get(opts, :return)}
+      Keyword.has_key?(opts, :exec) -> %Placebo.Action.Exec{function: Keyword.get(opts, :exec)}
+      Keyword.has_key?(opts, :seq) -> %Placebo.Action.Seq{values: Keyword.get(opts, :seq)}
+      Keyword.has_key?(opts, :loop) -> %Placebo.Action.Loop{values: Keyword.get(opts, :loop)}
+      true -> raise "No action specified in Placebo stub, #{inspect(opts)}"
     end
   end
 
-  defdelegate unstub, to: Placebo.Server, as: :clear
+  # def update_mock(%Placebo.Mock{} = mock) do
+  #   if not Placebo.Server.is_mock?(mock.module) do
+  #     :meck.new(mock.module, set_opts(mock.opts))
+  #   end
 
-  def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
-    Placebo.Actions.return(mock, value)
-  end
+  #   Placebo.Server.add_expectation(mock)
+  # end
 
-  def set_expectation(%Placebo.Mock{} = mock, {:exec, function}) do
-    Placebo.Actions.exec(mock, function)
-  end
+  # defp set_opts(opts) do
+  #   case Enum.member?(opts, :passthrough) do
+  #     true -> [:no_link | opts]
+  #     false -> [:no_link, :merge_expects | opts]
+  #   end
+  # end
 
-  def set_expectation(%Placebo.Mock{} = mock, {:seq, list}) do
-    Placebo.Actions.seq(mock, list)
-  end
+  # defdelegate unstub, to: Placebo.Server, as: :clear
 
-  def set_expectation(%Placebo.Mock{} = mock, {:loop, list}) do
-    Placebo.Actions.loop(mock, list)
-  end
+  # def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
+  #   Placebo.Actions.return(mock, value)
+  # end
 
-  def set_expectation(_mock, _keyword), do: nil
+  # def set_expectation(%Placebo.Mock{} = mock, {:exec, function}) do
+  #   Placebo.Actions.exec(mock, function)
+  # end
+
+  # def set_expectation(%Placebo.Mock{} = mock, {:seq, list}) do
+  #   Placebo.Actions.seq(mock, list)
+  # end
+
+  # def set_expectation(%Placebo.Mock{} = mock, {:loop, list}) do
+  #   Placebo.Actions.loop(mock, list)
+  # end
+
+  # def set_expectation(_mock, _keyword), do: nil
+
 end
