@@ -186,7 +186,8 @@ defmodule Placebo do
             opts: opts,
             expect?: expect?
           ] do
-      mock_config = {module, function, args, expect?}
+      meck_options = Keyword.get(opts, :meck_options, [])
+      mock_config = {module, function, args, expect?, meck_options}
       setup_mock(mock_config, Map.new(opts))
       mock_config
     end

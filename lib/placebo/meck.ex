@@ -77,8 +77,8 @@ defmodule Placebo.Meck do
     end)
   end
 
-  def mock_module(module) do
-    :meck.new(module, [:passthrough])
+  def mock_module(module, meck_options \\ []) do
+    :meck.new(module, [:passthrough | meck_options])
   end
 
   def mock_function(module, function, arity) do
