@@ -1,6 +1,6 @@
 defmodule Placebo.Helpers do
-  def failure_message(module, function, args) do
-    "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{format_history(module)}"
+  def failure_message(module, function, args, caller \\ self()) do
+    "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{format_history(module, caller)}"
   end
 
   defp output(module, function, args) do
@@ -8,8 +8,8 @@ defmodule Placebo.Helpers do
     "#{module}.#{function}(#{args_output})"
   end
 
-  def format_history(module) do
-    Placebo.Server.history(module)
+  def format_history(module, caller \\ self()) do
+    Placebo.Server.history(module, caller)
     |> Enum.map(&format_call/1)
     |> Enum.join("\n")
   end

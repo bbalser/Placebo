@@ -17,7 +17,7 @@ defmodule Placebo.Server do
     GenServer.call(__MODULE__, {:stubs, module, function, arity})
   end
 
-  def expects(test_pid) do
+  def expects(test_pid \\ self()) do
     GenServer.call(__MODULE__, {:expects, test_pid})
   end
 
@@ -25,16 +25,16 @@ defmodule Placebo.Server do
     GenServer.call(__MODULE__, {:update, module, stub, state})
   end
 
-  def num_calls(module, function, args) do
-    GenServer.call(__MODULE__, {:num_calls, module, function, args})
+  def num_calls(module, function, args, caller \\ self()) do
+    GenServer.call(__MODULE__, {:num_calls, module, function, args, caller})
   end
 
-  def history(module) do
-    GenServer.call(__MODULE__, {:history, module})
+  def history(module, caller \\ self()) do
+    GenServer.call(__MODULE__, {:history, module, caller})
   end
 
-  def capture(history_position, module, function, args, arg_num) do
-    GenServer.call(__MODULE__, {:capture, history_position, module, function, args, arg_num})
+  def capture(history_position, module, function, args, arg_num, caller \\ self()) do
+    GenServer.call(__MODULE__, {:capture, history_position, module, function, args, arg_num, caller})
   end
 
   def clear, do: GenServer.call(__MODULE__, :clear)
@@ -42,7 +42,7 @@ defmodule Placebo.Server do
   ## SERVER
 
   defmodule Stub do
-    defstruct [:pid, :module, :function, :args_matcher, :arity, :action, :expect?, :state]
+    defstruct [:pid, :module, :function, :args_matcher, :args, :arity, :action, :expect?, :state]
   end
 
   defmodule State do
@@ -62,6 +62,7 @@ defmodule Placebo.Server do
       module: module,
       function: function,
       args_matcher: args_matcher,
+      args: args,
       arity: arity,
       action: action,
       expect?: expect?,
@@ -71,7 +72,6 @@ defmodule Placebo.Server do
     stubs = Map.update(state.stubs, module, [stub], fn current -> [stub | current] end)
 
     unless Map.has_key?(state.stubs, module) do
-      # TODO no_link? not sure why I neede that before
       :meck.new(module, [:passthrough])
       :meck.expect(module, function, default_function)
     end
@@ -95,6 +95,7 @@ defmodule Placebo.Server do
 
   def handle_call({:expects, test_pid}, _from, state) do
     Map.values(state.stubs)
+    |> List.flatten()
     |> Enum.filter(fn stub -> stub.pid == test_pid && stub.expect? == true end)
     |> reply(state)
   end
@@ -111,33 +112,33 @@ defmodule Placebo.Server do
     reply(:ok, %{state | stubs: new_stubs, related_pids: Map.put(state.related_pids, test_pid, descendents)})
   end
 
-  def handle_call({:num_calls, module, function, args}, {caller_pid, _}, %{async?: true} = state) do
+  def handle_call({:num_calls, module, function, args, caller_pid}, _from, %{async?: true} = state) do
     [caller_pid | Map.get(state.related_pids, caller_pid, [])]
     |> Enum.map(fn pid -> :meck.num_calls(module, function, args, pid) end)
     |> Enum.sum()
     |> reply(state)
   end
 
-  def handle_call({:num_calls, module, function, args}, _from, state) do
+  def handle_call({:num_calls, module, function, args, _caller_pid}, _from, state) do
     :meck.num_calls(module, function, args)
     |> reply(state)
   end
 
-  def handle_call({:history, module}, {caller_pid, _}, %{async?: true} = state) do
+  def handle_call({:history, module, caller_pid}, _from, %{async?: true} = state) do
     [caller_pid | Map.get(state.related_pids, caller_pid, [])]
     |> Enum.map(fn pid -> :meck.history(module, pid) end)
     |> List.flatten()
     |> reply(state)
   end
 
-  def handle_call({:history, module}, _from, state) do
+  def handle_call({:history, module, _caller_pid}, _from, state) do
     :meck.history(module)
     |> reply(state)
   end
 
   def handle_call(
-        {:capture, history_position, module, function, args, arg_num},
-        {caller_pid, _},
+        {:capture, history_position, module, function, args, arg_num, caller_pid},
+        _from,
         %{async?: true} = state
       ) do
     [caller_pid | Map.get(state.related_pids, caller_pid, [])]
@@ -155,7 +156,7 @@ defmodule Placebo.Server do
     end
   end
 
-  def handle_call({:capture, history_position, module, function, args, arg_num}, _from, state) do
+  def handle_call({:capture, history_position, module, function, args, arg_num, _caller_pid}, _from, state) do
     capture = :meck.capture(history_position, module, function, args, arg_num)
     reply({:ok, capture}, state)
   rescue
