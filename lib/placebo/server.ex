@@ -10,8 +10,8 @@ defmodule Placebo.Server do
 
   def set_async(async?), do: GenServer.cast(__MODULE__, {:async?, async?})
 
-  def stub(module, function, args, action, expect?) do
-    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?})
+  def stub(module, function, args, action, expect?, meck_options \\ []) do
+    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?, meck_options})
   end
 
   def stubs(module, function, arity) do
@@ -50,11 +50,11 @@ defmodule Placebo.Server do
     {:ok, %State{}}
   end
 
-  def handle_call({:stub, module, function, args, action, expect?}, {pid, _}, state) do
+  def handle_call({:stub, module, function, args, action, expect?, meck_options}, {pid, _}, state) do
     stub = Meck.stub(module, function, args, action, expect?, pid)
 
     unless Map.has_key?(state.stubs, module) do
-      Meck.mock_module(module)
+      Meck.mock_module(module, meck_options)
     end
 
     unless is_function_mocked(state, module, function) do
