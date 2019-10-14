@@ -119,21 +119,18 @@ defmodule Placebo do
 
         Placebo.Server.set_async(async?)
 
-        # test_pid = self()
+        test_pid = self()
 
         on_exit(fn ->
-          # stubs = Placebo.Server.expects(test_pid)
-          mocks = %{}
-
           try do
-            Map.values(mocks)
-            |> List.flatten()
-            |> Enum.each(fn expectation ->
-              assert :meck.called(expectation.module, expectation.function, expectation.args),
+            Placebo.Server.expects(test_pid)
+            |> Enum.each(fn stub ->
+              assert Placebo.Server.num_calls(stub.module, stub.function, stub.args, test_pid) > 0,
                      Placebo.Helpers.failure_message(
-                       expectation.module,
-                       expectation.function,
-                       expectation.args
+                       stub.module,
+                       stub.function,
+                       stub.args,
+                       test_pid
                      )
             end)
           after
