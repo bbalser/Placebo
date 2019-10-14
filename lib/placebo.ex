@@ -119,10 +119,11 @@ defmodule Placebo do
 
         Placebo.Server.set_async(async?)
 
-        test_pid = self()
+        # test_pid = self()
 
         on_exit(fn ->
-          stubs = Placebo.Server.expects(test_pid)
+          # stubs = Placebo.Server.expects(test_pid)
+          mocks = %{}
 
           try do
             Map.values(mocks)
@@ -149,19 +150,25 @@ defmodule Placebo do
 
   defmacro capture({{:., _, [module, f]}, _, args}, arg_num) do
     quote do
-      :meck.capture(:first, unquote(module), unquote(f), unquote(args), unquote(arg_num))
+      case Placebo.Server.capture(:first, unquote(module), unquote(f), unquote(args), unquote(arg_num)) do
+        {:ok, capture} -> capture
+        {:error, reason} -> raise "Unable to find capture: #{inspect(reason)}"
+      end
     end
   end
 
   defmacro capture(history_position, {{:., _, [module, f]}, _, args}, arg_num) do
     quote do
-      :meck.capture(
-        unquote(history_position),
-        unquote(module),
-        unquote(f),
-        unquote(args),
-        unquote(arg_num)
-      )
+      case Placebo.Server.capture(
+             unquote(history_position),
+             unquote(module),
+             unquote(f),
+             unquote(args),
+             unquote(arg_num)
+           ) do
+        {:ok, capture} -> capture
+        {:error, reason} -> raise "Unable to find capture: #{inspect(reason)}"
+      end
     end
   end
 
@@ -204,7 +211,7 @@ defmodule Placebo do
 
   defmacro num_calls({{:., _, [module, f]}, _, args}) do
     quote bind_quoted: [module: module, f: f, args: args] do
-      :meck.num_calls(module, f, args)
+      Placebo.Server.num_calls(module, f, args)
     end
   end
 
@@ -221,38 +228,5 @@ defmodule Placebo do
   def setup_mock(mock_config, %{loop: values}), do: Placebo.Actions.loop(mock_config, values)
   def setup_mock(_, _), do: :ok
 
-  # def update_mock(%Placebo.Mock{} = mock) do
-  #   if not Placebo.Server.is_mock?(mock.module) do
-  #     :meck.new(mock.module, set_opts(mock.opts))
-  #   end
-
-  #   Placebo.Server.add_expectation(mock)
-  # end
-
-  # defp set_opts(opts) do
-  #   case Enum.member?(opts, :passthrough) do
-  #     true -> [:no_link | opts]
-  #     false -> [:no_link, :merge_expects | opts]
-  #   end
-  # end
-
   defdelegate unstub, to: Placebo.Server, as: :clear
-
-  # def set_expectation(%Placebo.Mock{} = mock, {:return, value}) do
-  #   Placebo.Actions.return(mock, value)
-  # end
-
-  # def set_expectation(%Placebo.Mock{} = mock, {:exec, function}) do
-  #   Placebo.Actions.exec(mock, function)
-  # end
-
-  # def set_expectation(%Placebo.Mock{} = mock, {:seq, list}) do
-  #   Placebo.Actions.seq(mock, list)
-  # end
-
-  # def set_expectation(%Placebo.Mock{} = mock, {:loop, list}) do
-  #   Placebo.Actions.loop(mock, list)
-  # end
-
-  # def set_expectation(_mock, _keyword), do: nil
 end

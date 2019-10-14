@@ -22,7 +22,19 @@ defmodule Placebo.Server do
   end
 
   def update_stub_state(module, stub, state) do
-    GenServer.cast(__MODULE__, {:update, module, stub, state})
+    GenServer.call(__MODULE__, {:update, module, stub, state})
+  end
+
+  def num_calls(module, function, args) do
+    GenServer.call(__MODULE__, {:num_calls, module, function, args})
+  end
+
+  def history(module) do
+    GenServer.call(__MODULE__, {:history, module})
+  end
+
+  def capture(history_position, module, function, args, arg_num) do
+    GenServer.call(__MODULE__, {:capture, history_position, module, function, args, arg_num})
   end
 
   def clear, do: GenServer.call(__MODULE__, :clear)
@@ -34,7 +46,7 @@ defmodule Placebo.Server do
   end
 
   defmodule State do
-    defstruct stubs: %{}, async?: false
+    defstruct stubs: %{}, async?: false, related_pids: %{}
   end
 
   def init(_args) do
@@ -87,6 +99,69 @@ defmodule Placebo.Server do
     |> reply(state)
   end
 
+  def handle_call({:update, module, stub, new_state}, {caller_pid, _}, state) do
+    [test_pid | descendents] = ancestors(caller_pid) |> Enum.reverse()
+
+    new_stubs =
+      Map.update!(state.stubs, module, fn stubs ->
+        index = Enum.find_index(stubs, fn entry -> entry == stub end)
+        List.replace_at(stubs, index, %{stub | state: new_state})
+      end)
+
+    reply(:ok, %{state | stubs: new_stubs, related_pids: Map.put(state.related_pids, test_pid, descendents)})
+  end
+
+  def handle_call({:num_calls, module, function, args}, {caller_pid, _}, %{async?: true} = state) do
+    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+    |> Enum.map(fn pid -> :meck.num_calls(module, function, args, pid) end)
+    |> Enum.sum()
+    |> reply(state)
+  end
+
+  def handle_call({:num_calls, module, function, args}, _from, state) do
+    :meck.num_calls(module, function, args)
+    |> reply(state)
+  end
+
+  def handle_call({:history, module}, {caller_pid, _}, %{async?: true} = state) do
+    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+    |> Enum.map(fn pid -> :meck.history(module, pid) end)
+    |> List.flatten()
+    |> reply(state)
+  end
+
+  def handle_call({:history, module}, _from, state) do
+    :meck.history(module)
+    |> reply(state)
+  end
+
+  def handle_call(
+        {:capture, history_position, module, function, args, arg_num},
+        {caller_pid, _},
+        %{async?: true} = state
+      ) do
+    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+    |> Enum.map(fn pid ->
+      try do
+        :meck.capture(history_position, module, function, args, arg_num, pid)
+      rescue
+        _ -> nil
+      end
+    end)
+    |> Enum.find(fn c -> c != nil end)
+    |> case do
+      nil -> reply({:error, :not_found}, state)
+      c -> reply({:ok, c}, state)
+    end
+  end
+
+  def handle_call({:capture, history_position, module, function, args, arg_num}, _from, state) do
+    capture = :meck.capture(history_position, module, function, args, arg_num)
+    reply({:ok, capture}, state)
+  rescue
+    error -> reply({:error, error}, state)
+  end
+
   def handle_call(:clear, _from, _state) do
     :meck.unload()
 
@@ -95,16 +170,6 @@ defmodule Placebo.Server do
 
   def handle_cast({:async?, async?}, state) do
     noreply(%{state | async?: async?})
-  end
-
-  def handle_cast({:update, module, stub, new_state}, state) do
-    new_stubs =
-      Map.update!(state.stubs, module, fn stubs ->
-        index = Enum.find_index(stubs, fn entry -> entry == stub end)
-        List.replace_at(stubs, index, %{stub | state: new_state})
-      end)
-
-    noreply(%{state | stubs: new_stubs})
   end
 
   defp ancestors(pid) do

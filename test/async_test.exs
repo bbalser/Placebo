@@ -8,6 +8,7 @@ defmodule Placebo.Async.Test1 do
     Process.sleep(1_000)
     assert :foo == Regex.regex?(:foo)
     Process.sleep(1_000)
+    assert_called Regex.regex?(:foo)
   end
 end
 
@@ -17,9 +18,10 @@ defmodule Placebo.Async.Test2 do
   require Logger
 
   test "async test 2" do
-    allow Regex.regex?(:foo), return: :bar
+    allow Regex.regex?(:fool), return: :bar
     Process.sleep(1_000)
-    assert :bar == Regex.regex?(:foo)
+    assert :bar == Regex.regex?(:fool)
     Process.sleep(1_000)
+    assert_called Regex.regex?(:fool)
   end
 end
