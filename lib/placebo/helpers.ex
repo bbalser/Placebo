@@ -1,6 +1,8 @@
 defmodule Placebo.Helpers do
   def failure_message(module, function, args, caller \\ self()) do
-    "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{format_history(module, caller)}"
+    "Mock Verification Failed: #{output(module, function, args)}\nActual calls to Mock:\n#{
+      format_history(module, caller)
+    }"
   end
 
   defp output(module, function, args) do
