@@ -184,10 +184,9 @@ defmodule Placebo do
             args: args,
             arity: length(args),
             opts: opts,
-            expect?: expect?,
-            default_function: Placebo.Macros.handler_for(module, function, length(args))
+            expect?: expect?
           ] do
-      mock_config = {module, function, args, expect?, default_function}
+      mock_config = {module, function, args, expect?}
       setup_mock(mock_config, Map.new(opts))
       mock_config
     end

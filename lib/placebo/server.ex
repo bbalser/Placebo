@@ -1,5 +1,6 @@
 defmodule Placebo.Server do
   use GenServer
+  alias Placebo.Meck
 
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -9,8 +10,8 @@ defmodule Placebo.Server do
 
   def set_async(async?), do: GenServer.cast(__MODULE__, {:async?, async?})
 
-  def stub(module, function, args, action, expect?, default_function) do
-    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?, default_function})
+  def stub(module, function, args, action, expect?) do
+    GenServer.call(__MODULE__, {:stub, module, function, args, action, expect?})
   end
 
   def stubs(module, function, arity) do
@@ -41,10 +42,6 @@ defmodule Placebo.Server do
 
   ## SERVER
 
-  defmodule Stub do
-    defstruct [:pid, :module, :function, :args_matcher, :args, :arity, :action, :expect?, :state]
-  end
-
   defmodule State do
     defstruct stubs: %{}, async?: false, related_pids: %{}
   end
@@ -53,43 +50,28 @@ defmodule Placebo.Server do
     {:ok, %State{}}
   end
 
-  def handle_call({:stub, module, function, args, action, expect?, default_function}, {pid, _}, state) do
-    arity = length(args)
-    args_matcher = :meck_args_matcher.new(args)
-
-    stub = %Stub{
-      pid: pid,
-      module: module,
-      function: function,
-      args_matcher: args_matcher,
-      args: args,
-      arity: arity,
-      action: action,
-      expect?: expect?,
-      state: %{}
-    }
-
-    stubs = Map.update(state.stubs, module, [stub], fn current -> [stub | current] end)
+  def handle_call({:stub, module, function, args, action, expect?}, {pid, _}, state) do
+    stub = Meck.stub(module, function, args, action, expect?, pid)
 
     unless Map.has_key?(state.stubs, module) do
-      :meck.new(module, [:passthrough])
-      :meck.expect(module, function, default_function)
+      Meck.mock_module(module)
     end
 
+    unless is_function_mocked(state, module, function) do
+      Meck.mock_function(module, function, stub.arity)
+    end
+
+    stubs = Map.update(state.stubs, module, [stub], fn current -> [stub | current] end)
     reply(:ok, %{state | stubs: stubs})
   end
 
   def handle_call({:stubs, module, function, arity}, {caller_pid, _}, %{async?: true} = state) do
-    ancestors = ancestors(caller_pid)
-
-    Map.get(state.stubs, module, [])
-    |> Enum.filter(fn stub -> stub.pid in ancestors && stub.function == function && stub.arity == arity end)
+    Meck.stubs(state.stubs, module, function, arity, caller_pid)
     |> reply(state)
   end
 
   def handle_call({:stubs, module, function, arity}, _from, state) do
-    Map.get(state.stubs, module, [])
-    |> Enum.filter(fn stub -> stub.function == function && stub.arity == arity end)
+    Meck.stubs(state.stubs, module, function, arity)
     |> reply(state)
   end
 
@@ -101,7 +83,7 @@ defmodule Placebo.Server do
   end
 
   def handle_call({:update, module, stub, new_state}, {caller_pid, _}, state) do
-    [test_pid | descendents] = ancestors(caller_pid) |> Enum.reverse()
+    [test_pid | descendents] = Meck.ancestors(caller_pid) |> Enum.reverse()
 
     new_stubs =
       Map.update!(state.stubs, module, fn stubs ->
@@ -113,26 +95,26 @@ defmodule Placebo.Server do
   end
 
   def handle_call({:num_calls, module, function, args, caller_pid}, _from, %{async?: true} = state) do
-    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
-    |> Enum.map(fn pid -> :meck.num_calls(module, function, args, pid) end)
-    |> Enum.sum()
+    pids = [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+
+    Meck.num_calls(module, function, args, pids)
     |> reply(state)
   end
 
   def handle_call({:num_calls, module, function, args, _caller_pid}, _from, state) do
-    :meck.num_calls(module, function, args)
+    Meck.num_calls(module, function, args)
     |> reply(state)
   end
 
   def handle_call({:history, module, caller_pid}, _from, %{async?: true} = state) do
-    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
-    |> Enum.map(fn pid -> :meck.history(module, pid) end)
-    |> List.flatten()
+    pids = [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+
+    Meck.history(module, pids)
     |> reply(state)
   end
 
   def handle_call({:history, module, _caller_pid}, _from, state) do
-    :meck.history(module)
+    Meck.history(module)
     |> reply(state)
   end
 
@@ -141,30 +123,24 @@ defmodule Placebo.Server do
         _from,
         %{async?: true} = state
       ) do
-    [caller_pid | Map.get(state.related_pids, caller_pid, [])]
-    |> Enum.map(fn pid ->
-      try do
-        :meck.capture(history_position, module, function, args, arg_num, pid)
-      rescue
-        _ -> nil
-      end
-    end)
-    |> Enum.find(fn c -> c != nil end)
-    |> case do
-      nil -> reply({:error, :not_found}, state)
-      c -> reply({:ok, c}, state)
+    pids = [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+    case Meck.capture(history_position, module, function, args, arg_num, pids) do
+      nil -> {:error, :not_found}
+      capture -> {:ok, capture}
     end
+    |> reply(state)
   end
 
   def handle_call({:capture, history_position, module, function, args, arg_num, _caller_pid}, _from, state) do
-    capture = :meck.capture(history_position, module, function, args, arg_num)
-    reply({:ok, capture}, state)
-  rescue
-    error -> reply({:error, error}, state)
+    case Meck.capture(history_position, module, function, args, arg_num) do
+      nil -> {:error, :not_found}
+      capture -> {:ok, capture}
+    end
+    |> reply(state)
   end
 
   def handle_call(:clear, _from, _state) do
-    :meck.unload()
+    Meck.unload()
 
     reply(:ok, %State{})
   end
@@ -173,14 +149,9 @@ defmodule Placebo.Server do
     noreply(%{state | async?: async?})
   end
 
-  defp ancestors(pid) do
-    ancestors =
-      pid
-      |> Process.info()
-      |> Keyword.get(:dictionary)
-      |> Keyword.get(:"$ancestors", [])
-
-    [pid | ancestors]
+  defp is_function_mocked(state, module, function) do
+    Map.get(state.stubs, module, [])
+    |> Enum.any?(fn stub -> stub.function == function end)
   end
 
   defp noreply(new_state), do: {:noreply, new_state}
