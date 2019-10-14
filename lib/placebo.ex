@@ -113,7 +113,7 @@ defmodule Placebo do
       setup(context) do
         async? = Map.get(context, :async, false)
 
-        if async? == false do
+        unless async? do
           Placebo.Server.clear()
         end
 
@@ -134,7 +134,7 @@ defmodule Placebo do
                      )
             end)
           after
-            if async? == false do
+            unless async? do
               Placebo.Server.clear()
             end
           end
