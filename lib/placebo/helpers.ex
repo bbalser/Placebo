@@ -9,7 +9,7 @@ defmodule Placebo.Helpers do
   end
 
   def format_history(module) do
-    :meck.history(module)
+    Placebo.Server.history(module)
     |> Enum.map(&format_call/1)
     |> Enum.join("\n")
   end
@@ -23,9 +23,11 @@ defmodule Placebo.Helpers do
   end
 
   def called?(module, function, args, validator) do
+    num_calls = Placebo.Server.num_calls(module, function, args)
+
     case validator do
-      {:times, n} -> n == :meck.num_calls(module, function, args)
-      _ -> :meck.called(module, function, args)
+      {:times, n} -> n == num_calls
+      _ -> num_calls > 0
     end
   end
 end
