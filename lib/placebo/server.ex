@@ -57,7 +57,7 @@ defmodule Placebo.Server do
       Meck.mock_module(module, meck_options)
     end
 
-    unless is_function_mocked(state, module, function) do
+    unless is_function_mocked(state, module, function, stub.arity) do
       Meck.mock_function(module, function, stub.arity)
     end
 
@@ -149,9 +149,9 @@ defmodule Placebo.Server do
     noreply(%{state | async?: async?})
   end
 
-  defp is_function_mocked(state, module, function) do
+  defp is_function_mocked(state, module, function, arity) do
     Map.get(state.stubs, module, [])
-    |> Enum.any?(fn stub -> stub.function == function end)
+    |> Enum.any?(fn stub -> stub.function == function && stub.arity == arity end)
   end
 
   defp noreply(new_state), do: {:noreply, new_state}

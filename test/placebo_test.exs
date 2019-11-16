@@ -165,6 +165,13 @@ defmodule PlaceboTest do
     assert Regex.regex?("a") == true
   end
 
+  test "mocks function with same name but different arity" do
+    allow String.split(any()), return: :arity_1
+    allow String.split(any(), any()), return: :arity_2
+
+    assert String.split("one, two", ",") == :arity_2
+  end
+
   describe "property-based testing" do
     property "is possible with allow" do
       check all(
