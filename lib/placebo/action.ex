@@ -31,12 +31,12 @@ defmodule Placebo.Action.Seq do
   defstruct [:values]
 
   defimpl Placebo.Action, for: Placebo.Action.Seq do
-    def invoke(%Placebo.Action.Seq{values: values}, _args, state) do
-      index = Map.get(state, :index, -1) + 1
 
-      case index >= length(values) do
-        true -> {List.last(values), state}
-        false -> {Enum.at(values, index), %{index: index}}
+    def invoke(%Placebo.Action.Seq{values: values}, _args, state) do
+      [hd | tail] = Map.get(state, :remaining, values)
+      case tail == [] do
+        true -> {hd, state}
+        false -> {hd, Map.put(state, :remaining, tail)}
       end
     end
   end
