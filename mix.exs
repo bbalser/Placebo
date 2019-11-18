@@ -4,7 +4,7 @@ defmodule Placebo.MixProject do
   def project do
     [
       app: :placebo,
-      version: "2.0.0-rc.1",
+      version: "2.0.0-rc.2",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       description: description(),
