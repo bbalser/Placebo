@@ -31,12 +31,11 @@ defmodule Placebo.Action.Seq do
   defstruct [:values]
 
   defimpl Placebo.Action, for: Placebo.Action.Seq do
-
     def invoke(%Placebo.Action.Seq{values: values}, _args, state) do
-      [hd | tail] = Map.get(state, :remaining, values)
+      [head | tail] = Map.get(state, :remaining, values)
       case tail == [] do
-        true -> {hd, state}
-        false -> {hd, Map.put(state, :remaining, tail)}
+        true -> {head, state}
+        false -> {head, Map.put(state, :remaining, tail)}
       end
     end
   end
@@ -47,11 +46,10 @@ defmodule Placebo.Action.Loop do
 
   defimpl Placebo.Action, for: Placebo.Action.Loop do
     def invoke(%Placebo.Action.Loop{values: values}, _args, state) do
-      index = Map.get(state, :index, -1) + 1
-
-      case index >= length(values) do
-        true -> {Enum.at(values, 0), %{index: 0}}
-        false -> {Enum.at(values, index), %{index: index}}
+      [head | tail] = Map.get(state, :remaining, values)
+      case tail == [] do
+        true -> {head, Map.put(state, :remaining, values)}
+        false -> {head, Map.put(state, :remaining, tail)}
       end
     end
   end
