@@ -25,7 +25,7 @@ defmodule Placebo.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:meck, "~> 0.8.13"},
+      {:meck, "~> 0.9"},
       {:mix_test_watch, "~> 0.6.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.19.1", only: :dev, runtime: false},
       {:stream_data, "~> 0.4", only: [:dev, :test]}
