@@ -28,10 +28,10 @@ defmodule Placebo.Meck do
   end
 
   def stubs(stubs, module, function, arity, pid) do
-    ancestors = ancestors(pid)
+    callers = callers(pid)
 
     Map.get(stubs, module, [])
-    |> Enum.filter(fn stub -> stub.pid in ancestors && stub.function == function && stub.arity == arity end)
+    |> Enum.filter(fn stub -> stub.pid in callers && stub.function == function && stub.arity == arity end)
   end
 
   def num_calls(module, function, args, pids \\ [])
@@ -90,16 +90,25 @@ defmodule Placebo.Meck do
     :meck.unload()
   end
 
-  def ancestors(nil), do: []
+  def callers(nil), do: []
 
-  def ancestors(pid) do
-    ancestors =
+  def callers(pid) do
+    callers =
       pid
-      |> Process.info()
-      |> Keyword.get(:dictionary)
-      |> Keyword.get(:"$ancestors", [])
+      |> Process.info(:dictionary)
+      |> get_in([Access.elem(1), :"$callers", default_value([])])
 
-    [pid | ancestors]
+    [pid | callers]
+  end
+
+  defp default_value(default) do
+    fn
+      :get, nil, next ->
+        next.(default)
+
+      :get, data, next ->
+        next.(data)
+    end
   end
 
   defp default_mock_handler(module, function, arity) do

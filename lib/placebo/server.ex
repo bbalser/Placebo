@@ -83,7 +83,7 @@ defmodule Placebo.Server do
   end
 
   def handle_call({:update, module, stub, new_state}, {caller_pid, _}, state) do
-    [test_pid | descendents] = Meck.ancestors(caller_pid) |> Enum.reverse()
+    [test_pid | descendents] = Meck.callers(caller_pid) |> Enum.reverse()
 
     new_stubs =
       Map.update!(state.stubs, module, fn stubs ->
