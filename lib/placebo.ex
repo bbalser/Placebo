@@ -100,6 +100,12 @@ defmodule Placebo do
 
   Failed verifications will automatically print out all recorded interactions with the mocked module.
 
+  # Asynchronous Testing
+
+  Placebo supports asynchronous testing by using `$callers` and making the mock active for only the processess in the calling heirarchy.
+
+  If the test is marked as `async: false` the mock is available globally.
+
   """
 
   defmacro __using__(_args) do
