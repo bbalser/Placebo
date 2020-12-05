@@ -120,6 +120,12 @@ expect(Some.Module.hello("world")) |> return("some value")
 
 Failed verifications will automatically print out all recorded interactions with the mocked module.
 
+## Asynchronous Testing
+
+Placebo supports asynchronous testing by using `$callers` and making the mock active for only the processess in the calling heirarchy.
+
+If the test is marked as `async: false` the mock is available globally.
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
