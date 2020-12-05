@@ -61,4 +61,20 @@ defmodule Placebo.MatchersTest do
     assert URI.decode("foobaz") == :baz
     assert URI.decode("other") == :no_match
   end
+
+  test "is_in" do
+    allow Regex.regex?(any()), return: :no_match
+    allow Regex.regex?(is_in([1, 2, 3])), return: :match
+
+    assert Regex.regex?(2) == :match
+    assert Regex.regex?(4) == :no_match
+  end
+
+  test "contains_member" do
+    allow Regex.regex?(any()), return: :no_match
+    allow Regex.regex?(contains_member("a")), return: :match
+
+    assert Regex.regex?(["b", "a", "c"]) == :match
+    assert Regex.regex?(["d", "e", "f"]) == :no_match
+  end
 end

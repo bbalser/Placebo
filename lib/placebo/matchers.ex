@@ -19,6 +19,7 @@ defmodule Placebo.Matchers do
   matcher :ne, do: arg != input
 
   matcher :contains_member, do: Enum.member?(arg, input)
+  matcher :is_in, do: arg in input
   matcher :is_empty, do: Enum.empty?(arg)
 
   matcher :is_alive, do: Process.alive?(arg)
