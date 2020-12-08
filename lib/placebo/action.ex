@@ -33,6 +33,7 @@ defmodule Placebo.Action.Seq do
   defimpl Placebo.Action, for: Placebo.Action.Seq do
     def invoke(%Placebo.Action.Seq{values: values}, _args, state) do
       [head | tail] = Map.get(state, :remaining, values)
+
       case tail == [] do
         true -> {head, state}
         false -> {head, Map.put(state, :remaining, tail)}
@@ -47,6 +48,7 @@ defmodule Placebo.Action.Loop do
   defimpl Placebo.Action, for: Placebo.Action.Loop do
     def invoke(%Placebo.Action.Loop{values: values}, _args, state) do
       [head | tail] = Map.get(state, :remaining, values)
+
       case tail == [] do
         true -> {head, Map.put(state, :remaining, values)}
         false -> {head, Map.put(state, :remaining, tail)}

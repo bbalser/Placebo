@@ -93,21 +93,12 @@ defmodule Placebo.Meck do
   def callers(nil), do: []
 
   def callers(pid) do
-    callers =
-      pid
-      |> Process.info(:dictionary)
-      |> get_in([Access.elem(1), :"$callers", default_value([])])
-
-    [pid | callers]
-  end
-
-  defp default_value(default) do
-    fn
-      :get, nil, next ->
-        next.(default)
-
-      :get, data, next ->
-        next.(data)
+    with tuple when tuple != nil <- Process.info(pid, :dictionary),
+         dictionary <- elem(tuple, 1),
+         callers when callers != nil <- Keyword.get(dictionary, :"$callers") do
+      [pid | callers]
+    else
+      nil -> [pid]
     end
   end
 

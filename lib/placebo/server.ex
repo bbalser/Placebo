@@ -124,6 +124,7 @@ defmodule Placebo.Server do
         %{async?: true} = state
       ) do
     pids = [caller_pid | Map.get(state.related_pids, caller_pid, [])]
+
     case Meck.capture(history_position, module, function, args, arg_num, pids) do
       nil -> {:error, :not_found}
       capture -> {:ok, capture}
