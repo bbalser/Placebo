@@ -98,7 +98,7 @@ defmodule Placebo.Meck do
       |> Process.info(:dictionary)
       |> get_in([Access.elem(1), :"$callers", default_value([])])
 
-    List.flatten([pid] ++ [callers])
+    [pid | callers]
   end
 
   defp default_value(default) do
