@@ -107,7 +107,9 @@ defmodule Placebo.Meck do
         next.(default)
 
       :get, data, next ->
-        next.([data])
+        data
+        |> List.wrap()
+        |> next.()
     end
   end
 
