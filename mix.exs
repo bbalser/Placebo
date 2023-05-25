@@ -34,9 +34,9 @@ defmodule Placebo.MixProject do
 
   defp package do
     [
-      maintainers: ["Brian Balser", "Johnson Denen"],
+      maintainers: ["Smartcitiesdata"],
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/bbalser/Placebo"}
+      links: %{"GitHub" => "https://github.com/UrbanOS-Public/Placebo_test"}
     ]
   end
 
