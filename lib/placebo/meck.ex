@@ -31,7 +31,7 @@ defmodule Placebo.Meck do
     callers = callers(pid)
 
     Map.get(stubs, module, [])
-    |> Enum.filter(fn stub -> stub.pid in callers && stub.function == function && stub.arity == arity end)
+    |> Enum.filter(fn stub -> stub.pid in callers and stub.function == function and stub.arity == arity end)
   end
 
   def num_calls(module, function, args, pids \\ [])
@@ -98,7 +98,10 @@ defmodule Placebo.Meck do
       |> Process.info(:dictionary)
       |> get_in([Access.elem(1), :"$callers", default_value([])])
 
-    [pid | callers]
+    case callers do
+      nil -> [pid]
+      callers -> [pid | callers]
+    end
   end
 
   defp default_value(default) do
